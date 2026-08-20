@@ -191,7 +191,7 @@
       align-items: center;
       justify-content: center;
       gap: 12px;
-      margin-bottom: 6px;
+      margin-bottom: 8px;
     }
     .leader-logo-wrap {
       display: inline-flex;
@@ -230,18 +230,14 @@
       transition: color .15s ease;
     }
     .leader-name:hover { color: var(--amber); }
-    .leader-tagline {
-      color: var(--ink-dim);
-      font-size: 14px;
-      margin-bottom: 16px;
-      min-height: 20px;
-    }
+
     .leader-price {
       font-family: 'JetBrains Mono', monospace;
       font-size: clamp(48px, 10vw, 68px);
       font-weight: 700;
       color: var(--rise);
       line-height: 1;
+      margin-top: 6px;
       text-shadow: 0 0 24px rgba(95, 209, 139, 0.25);
     }
     .leader-price span {
@@ -263,8 +259,27 @@
     .form-row {
       display: flex;
       flex-direction: column;
-      gap: 10px;
-      margin-bottom: 12px;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      text-align: left;
+    }
+    .field-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--ink-dim);
+      letter-spacing: .05em;
+      text-transform: uppercase;
+    }
+    .field-label .opt-tag {
+      color: var(--amber);
+      font-weight: 600;
+      text-transform: none;
+      font-size: 11px;
     }
     .input-field {
       width: 100%;
@@ -449,14 +464,6 @@
       text-decoration: none;
     }
     .rung-name:hover { color: var(--amber); text-decoration: underline; }
-    .rung-tagline {
-      font-size: 12px;
-      color: var(--ink-dim);
-      margin-top: 2px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
     .rung-time {
       font-family: 'JetBrains Mono', monospace;
       font-size: 11px;
@@ -514,17 +521,21 @@
       <span id="leaderLogoWrap" class="leader-logo-wrap"></span>
       <a href="#" id="leaderLink" target="_blank" rel="noopener noreferrer" class="leader-name">Loading...</a>
     </div>
-    <div class="leader-tagline" id="leaderTagline">First startup to bid claims the crown</div>
     <div class="leader-price"><span>₹</span><span id="leaderPrice">0</span></div>
   </div>
 
-  <!-- Bid Submission Form -->
+  <!-- Bid Submission Form (Clean 2 Fields: Name + Optional Website) -->
   <div class="form-card">
     <form id="bidForm">
       <div class="form-row">
-        <input type="text" id="companyInput" class="input-field" placeholder="Startup / Founder Name *" maxlength="32" required autocomplete="off">
-        <input type="text" id="urlInput" class="input-field" placeholder="Website URL (optional — auto-fetches logo!)" autocomplete="off">
-        <input type="text" id="taglineInput" class="input-field" placeholder="One-line pitch / tagline (optional)" maxlength="60" autocomplete="off">
+        <div class="field-group">
+          <label class="field-label" for="companyInput">Startup / Founder Name *</label>
+          <input type="text" id="companyInput" class="input-field" placeholder="e.g. Zepto, KissanAI, or Your Name" maxlength="32" required autocomplete="off">
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="urlInput">Website <span class="opt-tag">(Optional — auto-fetches your logo)</span></label>
+          <input type="text" id="urlInput" class="input-field" placeholder="e.g. yourstartup.com (Optional)" autocomplete="off">
+        </div>
       </div>
       <button type="submit" class="bid-action-btn" id="bidBtn">
         <span>⚡ Outbid for ₹<span id="nextPrice">1</span></span>
@@ -559,7 +570,7 @@
       ? 'http://localhost:3001'
       : '';
 
-    let boardState = { current_price: 1, current_leader: 'Nobody yet', leader_url: '', leader_tagline: '' };
+    let boardState = { current_price: 1, current_leader: 'Nobody yet', leader_url: '' };
     let bidsList = [];
 
     function normalizeUrl(url) {
@@ -601,7 +612,7 @@
           <img src="${escapeHtml(faviconUrl)}" 
                alt="${escapeHtml(name)}" 
                class="${imgClass}" 
-               onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-flex';" 
+               onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='inline-flex';" 
                loading="lazy">
           <div class="${avatarClass}" style="display: none;">${escapeHtml(initial)}</div>
         `;
@@ -659,7 +670,6 @@
       }
 
       document.getElementById('leaderLogoWrap').innerHTML = renderLogoElement(boardState.current_leader, boardState.leader_url, true);
-      document.getElementById('leaderTagline').textContent = boardState.leader_tagline || 'Leading the Boli Board';
       document.getElementById('leaderPrice').textContent = Number(boardState.current_price || 0).toLocaleString('en-IN');
       document.getElementById('nextPrice').textContent = Number((Number(boardState.current_price) || 0) + 1).toLocaleString('en-IN');
       document.getElementById('bidCount').textContent = `${bidsList.length} bids recorded`;
@@ -681,7 +691,6 @@
             <div class="rung-top-line">
               ${bUrl ? `<a href="${escapeHtml(bUrl)}" target="_blank" rel="noopener noreferrer" class="rung-name">${escapeHtml(b.company_name)} ↗</a>` : `<span class="rung-name">${escapeHtml(b.company_name)}</span>`}
             </div>
-            ${b.tagline ? `<div class="rung-tagline">${escapeHtml(b.tagline)}</div>` : ''}
             <div class="rung-time">${formatTime(b.created_at)}</div>
           </div>
           <div class="rung-price">₹${Number(b.price).toLocaleString('en-IN')}</div>
@@ -701,24 +710,22 @@
           const nameHtml = u ? `<a href="${escapeHtml(u)}" target="_blank" rel="noopener noreferrer">${escapeHtml(b.company_name)}</a>` : escapeHtml(b.company_name);
           return `<span class="ticker-item">${iconHtml} ${nameHtml} <b>took the crown for ₹${b.price}</b></span>`;
         }).join('');
-        ticker.innerHTML = items + items; // Duplicate for smooth continuous loop
+        ticker.innerHTML = items + items;
       }
     }
 
-    // Submit Boli Form with Razorpay Checkout
+    // Submit Boli Form (Website is 100% Optional)
     document.getElementById('bidForm').addEventListener('submit', async function(e) {
       e.preventDefault();
       const btn = document.getElementById('bidBtn');
       const companyInput = document.getElementById('companyInput');
       const urlInput = document.getElementById('urlInput');
-      const taglineInput = document.getElementById('taglineInput');
 
       const companyName = companyInput.value.trim();
       const rawUrl = urlInput.value.trim();
       const websiteUrl = rawUrl ? normalizeUrl(rawUrl) : '';
-      const tagline = taglineInput.value.trim();
 
-      if (!companyName) { showError('Please enter your company / startup name.'); return; }
+      if (!companyName) { showError('Please enter your name or company name.'); return; }
 
       btn.disabled = true;
       btn.innerHTML = '<span>⏳ Preparing Razorpay Order...</span>';
@@ -728,7 +735,7 @@
         const orderRes = await fetch(`${API}/api/order`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ companyName, websiteUrl, tagline })
+          body: JSON.stringify({ companyName, websiteUrl })
         });
 
         const orderData = await orderRes.json();
@@ -757,7 +764,6 @@
                 razorpay_signature: response.razorpay_signature,
                 companyName,
                 websiteUrl,
-                tagline,
                 price: orderData.nextPrice
               })
             });
@@ -766,7 +772,6 @@
             if (verifyData.success) {
               companyInput.value = '';
               urlInput.value = '';
-              taglineInput.value = '';
               await loadBoard();
               render(true);
             } else {
