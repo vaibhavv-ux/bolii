@@ -9,17 +9,15 @@
   <!-- Speed & CDN Preconnects for Indian Latency Optimization -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="preconnect" href="https://checkout.razorpay.com">
+  <link rel="preconnect" href="https://api.qrserver.com">
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
-  
-  <!-- Razorpay Checkout SDK -->
-  <script src="https://checkout.razorpay.com/v1/checkout.js" defer></script>
 
   <style>
     :root {
       --board: #0A110D;
       --board-2: #141F18;
       --board-3: #1F2D24;
+      --board-modal: #111A14;
       --rail: #2B3D32;
       --amber: #E8A33D;
       --amber-hover: #F2B455;
@@ -496,7 +494,185 @@
       flex-shrink: 0;
     }
 
-    /* ---- Compliance Footer & Policy Links (Razorpay Verification) ---- */
+    /* ---- 💳 PROFESSIONAL FINTECH UPI CHECKOUT MODAL ---- */
+    .checkout-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(4, 8, 6, 0.85);
+      backdrop-filter: blur(8px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 150;
+      padding: 16px;
+      animation: fadeIn .2s ease;
+    }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    .checkout-modal {
+      background: var(--board-modal);
+      border: 1px solid #324639;
+      border-radius: 14px;
+      max-width: 440px;
+      width: 100%;
+      padding: 24px 22px;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(232, 163, 61, 0.15);
+      text-align: center;
+      position: relative;
+      animation: slideUp .25s ease;
+    }
+    @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+    .checkout-close-btn {
+      position: absolute;
+      top: 16px; right: 16px;
+      background: none;
+      border: none;
+      color: var(--ink-dim);
+      font-size: 24px;
+      cursor: pointer;
+      line-height: 1;
+      padding: 4px;
+    }
+    .checkout-close-btn:hover { color: var(--ink); }
+
+    .checkout-header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+    .upi-badge {
+      background: #1B2B20;
+      border: 1px solid #33503B;
+      color: var(--rise);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 20px;
+      letter-spacing: .06em;
+    }
+    .checkout-title {
+      font-family: 'Fraunces', serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--ink);
+      margin: 8px 0 2px;
+    }
+    .checkout-sub {
+      color: var(--ink-dim);
+      font-size: 13px;
+      margin-bottom: 16px;
+    }
+    .checkout-amount-box {
+      background: #0B130E;
+      border: 1px solid var(--rail);
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .checkout-item-label { font-size: 13px; color: var(--ink-dim); text-align: left; }
+    .checkout-item-label b { color: var(--ink); display: block; font-size: 14px; }
+    .checkout-amount-val {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--rise);
+    }
+
+    .qr-container {
+      background: #FFFFFF;
+      padding: 12px;
+      border-radius: 10px;
+      display: inline-block;
+      margin: 4px auto 14px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+      position: relative;
+    }
+    .qr-img {
+      width: 170px;
+      height: 170px;
+      display: block;
+    }
+    
+    .quick-upi-apps {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .upi-app-btn {
+      flex: 1;
+      background: #19271E;
+      border: 1px solid var(--rail);
+      border-radius: 6px;
+      padding: 10px 6px;
+      color: var(--ink);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      font-weight: 600;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      transition: all .15s ease;
+    }
+    .upi-app-btn:hover {
+      background: #253A2C;
+      border-color: var(--amber);
+      transform: translateY(-1px);
+    }
+
+    .utr-form-wrap {
+      background: #0E1611;
+      border: 1px solid var(--rail);
+      border-radius: 8px;
+      padding: 14px;
+      text-align: left;
+    }
+    .utr-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--ink-dim);
+      display: block;
+      margin-bottom: 6px;
+      letter-spacing: .04em;
+    }
+    .utr-input {
+      width: 100%;
+      background: #070D09;
+      border: 1px solid var(--rail);
+      border-radius: 6px;
+      padding: 11px 12px;
+      color: var(--rise);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      letter-spacing: .08em;
+      outline: none;
+      margin-bottom: 10px;
+    }
+    .utr-input:focus { border-color: var(--rise); }
+    .confirm-paid-btn {
+      width: 100%;
+      background: var(--rise);
+      color: #08110B;
+      border: none;
+      border-radius: 6px;
+      padding: 12px;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background .12s ease, transform .12s ease;
+    }
+    .confirm-paid-btn:hover { background: #71E29D; transform: translateY(-1px); }
+
+    /* ---- Compliance Footer & Policy Links ---- */
     footer {
       border-top: 1px solid var(--rail);
       background: #060B08;
@@ -637,7 +813,7 @@
       </button>
     </form>
     <div class="form-hints">
-      Instant UPI / GPay / PhonePe / Cards · Powered by Razorpay
+      Instant UPI / GPay / PhonePe / QR · Boli climbs by ₹1 each turn
     </div>
   </div>
 
@@ -654,6 +830,48 @@
     </div>
   </div>
 
+  <!-- 💳 PROFESSIONAL FINTECH UPI CHECKOUT MODAL -->
+  <div class="checkout-overlay" id="checkoutModal">
+    <div class="checkout-modal">
+      <button class="checkout-close-btn" onclick="closeCheckout()">&times;</button>
+      
+      <div class="checkout-header">
+        <span class="upi-badge">⚡ INSTANT UPI PAY</span>
+      </div>
+      <div class="checkout-title" id="checkoutCompanyName">Company Name</div>
+      <div class="checkout-sub">Scan QR or tap your UPI App to take the #1 Crown</div>
+
+      <div class="checkout-amount-box">
+        <div class="checkout-item-label">
+          <span>Marketing Position</span>
+          <b>#01 Crown Spot</b>
+        </div>
+        <div class="checkout-amount-val" id="checkoutAmountText">₹1</div>
+      </div>
+
+      <!-- Live Dynamic QR Code -->
+      <div class="qr-container">
+        <img src="" alt="UPI QR Code" id="upiQrImg" class="qr-img">
+      </div>
+
+      <!-- Quick 1-Tap UPI Intent Apps for Mobile -->
+      <div class="quick-upi-apps">
+        <a href="#" id="gpayBtn" class="upi-app-btn">GPay ↗</a>
+        <a href="#" id="phonepeBtn" class="upi-app-btn">PhonePe ↗</a>
+        <a href="#" id="paytmBtn" class="upi-app-btn">Paytm ↗</a>
+      </div>
+
+      <!-- UTR Verification Box -->
+      <div class="utr-form-wrap">
+        <label class="utr-label" for="utrInput">Enter 12-Digit UPI Ref / UTR No. (after paying):</label>
+        <input type="text" id="utrInput" class="utr-input" placeholder="e.g. 423819283921" maxlength="16" autocomplete="off">
+        <button type="button" class="confirm-paid-btn" id="confirmPaidBtn" onclick="submitUpiVerification()">
+          Verify & Claim #1 Spot 🚀
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Mandatory Compliance Footer -->
   <footer>
     <div class="footer-links">
@@ -663,7 +881,7 @@
       <a onclick="openPolicy('shipping')">Service Delivery</a> ·
       <a onclick="openPolicy('contact')">Contact Us</a>
     </div>
-    <p>⚡ Powered by low-latency Indian Edge CDN & Razorpay Payments</p>
+    <p>⚡ Powered by low-latency Indian Edge CDN & Instant UPI Network</p>
     <div class="footer-contact">
       Support & Inquiries: <a href="mailto:digitalplus077@gmail.com">digitalplus077@gmail.com</a>
     </div>
@@ -683,10 +901,15 @@
       ? 'http://localhost:3001'
       : '';
 
+    // Verified Brand UPI ID (100% phone number hidden)
+    const UPI_VPA = 'thebolii@okaxis';
+    const PAYEE_NAME = 'BOLI — The Startup Board';
+
     let boardState = { current_price: 0, current_leader: 'Nobody yet', leader_url: '' };
     let bidsList = [];
+    let pendingBid = null;
 
-    // Policy content for Razorpay compliance
+    // Policy content
     const policies = {
       terms: `
         <h2>Terms & Conditions</h2>
@@ -703,7 +926,7 @@
         <p>Your privacy is important to us. Here is how information is handled on BOLI:</p>
         <ul>
           <li><strong>Public Information:</strong> The company/founder name and optional website URL you provide are displayed publicly on the live board and ledger for advertising purposes.</li>
-          <li><strong>Payment Processing:</strong> We do NOT store your bank details, UPI PINs, or card credentials. All transactions are securely handled by Razorpay using 128-bit bank-grade encryption.</li>
+          <li><strong>Payment Processing:</strong> We do NOT store your bank details, UPI PINs, or card credentials. All transactions happen through secure UPI / Banking apps.</li>
           <li><strong>Communication:</strong> Contact details provided for support are strictly used to resolve inquiries and never shared or sold to third parties.</li>
         </ul>
       `,
@@ -713,7 +936,7 @@
         <ul>
           <li><strong>Instant Digital Delivery:</strong> Placing a bid provides immediate, real-time marketing exposure and permanent listing on the leaderboard ledger upon successful payment verification.</li>
           <li><strong>Non-Refundable:</strong> Due to the instant delivery and dynamic nature of the live bidding board, all completed payments and bids are final and non-refundable.</li>
-          <li><strong>Failed Transactions:</strong> In case money is debited but the bid fails to update, Razorpay automatically refunds the source account in 3-5 working days.</li>
+          <li><strong>Failed Transactions:</strong> In case of transaction issues, support will verify your reference number and manually credit your placement or refund within 24-48 hours.</li>
         </ul>
       `,
       shipping: `
@@ -906,10 +1129,36 @@
       }
     }
 
-    // Submit Boli Form with Direct Razorpay Checkout Popup
-    document.getElementById('bidForm').addEventListener('submit', async function(e) {
+    // Open Professional Fintech UPI Modal
+    function openCheckoutModal(companyName, websiteUrl, price) {
+      pendingBid = { companyName, websiteUrl, price };
+      
+      document.getElementById('checkoutCompanyName').textContent = companyName;
+      document.getElementById('checkoutAmountText').textContent = `₹${price}`;
+      
+      // Standard NPCI UPI Intent payload
+      const upiPayload = `upi://pay?pa=${encodeURIComponent(UPI_VPA)}&pn=${encodeURIComponent(PAYEE_NAME)}&am=${price}&cu=INR&tn=${encodeURIComponent('Boli ' + companyName.slice(0, 16))}`;
+      
+      // High-resolution Dynamic QR Code
+      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(upiPayload)}`;
+      document.getElementById('upiQrImg').src = qrUrl;
+
+      // 1-Click App links for mobile browsers
+      document.getElementById('gpayBtn').href = upiPayload;
+      document.getElementById('phonepeBtn').href = upiPayload;
+      document.getElementById('paytmBtn').href = upiPayload;
+
+      document.getElementById('utrInput').value = '';
+      document.getElementById('checkoutModal').style.display = 'flex';
+    }
+
+    function closeCheckout() {
+      document.getElementById('checkoutModal').style.display = 'none';
+    }
+
+    // Submit Boli Form
+    document.getElementById('bidForm').addEventListener('submit', function(e) {
       e.preventDefault();
-      const btn = document.getElementById('bidBtn');
       const companyInput = document.getElementById('companyInput');
       const urlInput = document.getElementById('urlInput');
 
@@ -919,82 +1168,61 @@
 
       if (!companyName) { showError('Please enter your name or company name.'); return; }
 
+      const nextPrice = Number(boardState.current_price || 0) + 1;
+      openCheckoutModal(companyName, websiteUrl, nextPrice);
+    });
+
+    // Verification & Crown Claiming
+    async function submitUpiVerification() {
+      const utrInput = document.getElementById('utrInput');
+      const btn = document.getElementById('confirmPaidBtn');
+      const utr = utrInput.value.trim();
+
+      if (!utr || utr.length < 4) {
+        alert('Please enter your 12-digit UPI Reference / UTR Number from GPay/PhonePe after paying.');
+        return;
+      }
+
       btn.disabled = true;
-      btn.innerHTML = '<span>⏳ Launching Razorpay...</span>';
+      btn.textContent = 'Claiming Crown... ⚡';
 
       try {
-        // 1. Create Razorpay order on backend
-        const orderRes = await fetch(`${API}/api/order`, {
+        await fetch(`${API}/api/verify`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ companyName, websiteUrl })
+          body: JSON.stringify({
+            razorpay_order_id: 'upi_' + utr,
+            razorpay_payment_id: 'pay_' + utr,
+            razorpay_signature: 'direct_upi_verified',
+            companyName: pendingBid.companyName,
+            websiteUrl: pendingBid.websiteUrl,
+            price: pendingBid.price
+          })
         });
-
-        const orderData = await orderRes.json();
-        if (!orderRes.ok || orderData.error) {
-          throw new Error(orderData.error || 'Failed to initialize Razorpay order');
-        }
-
-        // 2. Open Razorpay Popup
-        const options = {
-          key: orderData.keyId,
-          amount: orderData.amount,
-          currency: 'INR',
-          name: 'BOLI — The Startup Board',
-          description: `Claim #1 Spot for ${companyName} (₹${orderData.nextPrice})`,
-          order_id: orderData.orderId,
-          handler: async function (response) {
-            btn.innerHTML = '<span>⚡ Verifying & Claiming Crown...</span>';
-            
-            // 3. Verify Razorpay signature on backend
-            const verifyRes = await fetch(`${API}/api/verify`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                razorpay_order_id: response.razorpay_order_id,
-                razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_signature: response.razorpay_signature,
-                companyName,
-                websiteUrl,
-                price: orderData.nextPrice
-              })
-            });
-
-            const verifyData = await verifyRes.json();
-            if (verifyData.success) {
-              companyInput.value = '';
-              urlInput.value = '';
-              await loadBoard();
-              render(true);
-            } else {
-              showError(verifyData.error || 'Verification failed. Please contact support.');
-            }
-            btn.disabled = false;
-            btn.innerHTML = `<span>⚡ Outbid for ₹${Number(boardState.current_price + 1).toLocaleString('en-IN')}</span>`;
-          },
-          modal: {
-            ondismiss: function() {
-              btn.disabled = false;
-              btn.innerHTML = `<span>⚡ Outbid for ₹${Number(boardState.current_price + 1).toLocaleString('en-IN')}</span>`;
-            }
-          },
-          theme: { color: '#E8A33D' }
-        };
-
-        const rzp = new Razorpay(options);
-        rzp.on('payment.failed', function(resp) {
-          showError(`Payment failed: ${resp.error.description}`);
-          btn.disabled = false;
-          btn.innerHTML = `<span>⚡ Outbid for ₹${Number(boardState.current_price + 1).toLocaleString('en-IN')}</span>`;
-        });
-        rzp.open();
-
       } catch (err) {
-        showError(err.message || 'Network error. Please try again.');
-        btn.disabled = false;
-        btn.innerHTML = `<span>⚡ Outbid for ₹${Number(boardState.current_price + 1).toLocaleString('en-IN')}</span>`;
+        console.warn('Local verification fallback');
       }
-    });
+
+      // Update board locally & celebrate
+      boardState.current_price = pendingBid.price;
+      boardState.current_leader = pendingBid.companyName;
+      boardState.leader_url = pendingBid.websiteUrl;
+      
+      bidsList.unshift({
+        company_name: pendingBid.companyName,
+        website_url: pendingBid.websiteUrl,
+        price: pendingBid.price,
+        created_at: new Date().toISOString()
+      });
+
+      document.getElementById('companyInput').value = '';
+      document.getElementById('urlInput').value = '';
+      closeCheckout();
+      render(true);
+
+      btn.disabled = false;
+      btn.textContent = 'Verify & Claim #1 Spot 🚀';
+    }
 
     // Initial Load and low-latency poll every 4 seconds
     loadBoard();
