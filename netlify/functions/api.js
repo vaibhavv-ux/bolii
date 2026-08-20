@@ -35,11 +35,11 @@ if (process.env.DATABASE_URL) {
   });
 }
 
-// Razorpay SDK Instance
+// Razorpay SDK Instance (Loads securely from Netlify Environment Variables)
 const getRazorpay = () => {
   return new Razorpay({
-    key_id: process.env.RAZORPAY_KEY_ID || 'rzp_live_TS42qH1kBkrU65',
-    key_secret: process.env.RAZORPAY_KEY_SECRET || 'bYHdBSvNNLBM0QNSblq8jeZz',
+    key_id: process.env.RAZORPAY_KEY_ID,
+    key_secret: process.env.RAZORPAY_KEY_SECRET,
   });
 };
 
@@ -104,10 +104,13 @@ router.post('/order', async (req, res) => {
 
   nextPrice = Math.max(1, nextPrice);
 
-  const razorpay = getRazorpay();
-  const keyId = process.env.RAZORPAY_KEY_ID || 'rzp_live_TS42qH1kBkrU65';
+  const keyId = process.env.RAZORPAY_KEY_ID;
+  if (!keyId || !process.env.RAZORPAY_KEY_SECRET) {
+    return res.status(500).json({ error: 'Razorpay keys not configured in Netlify Environment Variables.' });
+  }
 
   try {
+    const razorpay = getRazorpay();
     const order = await razorpay.orders.create({
       amount: nextPrice * 100,
       currency: 'INR',
@@ -141,9 +144,9 @@ router.post('/verify', async (req, res) => {
     price,
   } = req.body;
 
-  const keySecret = process.env.RAZORPAY_KEY_SECRET || 'bYHdBSvNNLBM0QNSblq8jeZz';
+  const keySecret = process.env.RAZORPAY_KEY_SECRET;
 
-  if (keySecret && keySecret !== 'secret_placeholder') {
+  if (keySecret) {
     const body = razorpay_order_id + '|' + razorpay_payment_id;
     const expectedSignature = crypto
       .createHmac('sha256', keySecret)
