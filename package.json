@@ -1,0 +1,16 @@
+{
+  "name": "boli-backend",
+  "version": "1.0.0",
+  "description": "Backend for Boli — the bidding leaderboard",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "cors": "^2.8.5",
+    "razorpay": "^2.9.4",
+    "pg": "^8.12.0",
+    "dotenv": "^16.4.5"
+  }
+}

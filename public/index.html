@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>BOLI — The Startup Bidding Board India</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Pay ₹1 more. Claim the #1 spot for your startup on India's most competitive founder billboard.">
+  
+  <!-- Speed & CDN Preconnects for Indian Latency Optimization -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://checkout.razorpay.com">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Razorpay Checkout SDK -->
+  <script src="https://checkout.razorpay.com/v1/checkout.js" defer></script>
+
+  <style>
+    :root {
+      --board: #0F1713;
+      --board-2: #18241D;
+      --board-3: #223329;
+      --rail: #2B3D32;
+      --amber: #E8A33D;
+      --amber-hover: #F2B455;
+      --rise: #5FD18B;
+      --ink: #F4F1E8;
+      --ink-dim: #9FAE9F;
+      --ink-muted: #6B7B6B;
+      --danger: #FF6B6B;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      background: var(--board);
+      color: var(--ink);
+      font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .mono { font-family: 'JetBrains Mono', monospace; }
+    .display { font-family: 'Fraunces', serif; }
+
+    /* ---- Speed Ticker ---- */
+    .ticker-wrap {
+      background: #090E0B;
+      border-bottom: 1px solid var(--rail);
+      overflow: hidden;
+      white-space: nowrap;
+      padding: 10px 0;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      backdrop-filter: blur(8px);
+    }
+    .ticker {
+      display: inline-block;
+      animation: scroll 24s linear infinite;
+      padding-left: 100%;
+    }
+    .ticker-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-right: 42px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      color: var(--ink-dim);
+    }
+    .ticker-item b { color: var(--amber); }
+    .ticker-item a { color: var(--ink); text-decoration: none; border-bottom: 1px dotted var(--amber); }
+    .ticker-item a:hover { color: var(--amber); }
+    @keyframes scroll {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-100%); }
+    }
+
+    /* ---- Header Section ---- */
+    header {
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 48px 20px 24px;
+      text-align: center;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      letter-spacing: .16em;
+      color: var(--amber);
+      text-transform: uppercase;
+      background: rgba(232, 163, 61, 0.1);
+      border: 1px solid rgba(232, 163, 61, 0.25);
+      padding: 6px 14px;
+      border-radius: 20px;
+      margin-bottom: 18px;
+    }
+    .live-dot {
+      width: 7px;
+      height: 7px;
+      background: var(--rise);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--rise);
+      animation: pulse 1.8s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+
+    h1 {
+      font-size: clamp(38px, 7vw, 62px);
+      line-height: 1.08;
+      font-weight: 700;
+      margin-bottom: 14px;
+      letter-spacing: -0.02em;
+    }
+    header p.subtitle {
+      color: var(--ink-dim);
+      font-size: 16px;
+      max-width: 520px;
+      margin: 0 auto;
+      line-height: 1.55;
+    }
+    header p.taunt {
+      color: var(--ink);
+      font-size: 14px;
+      margin-top: 12px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    header p.taunt b { color: var(--amber); }
+
+    /* ---- Highest Boli Spotlight Slab ---- */
+    .slab {
+      max-width: 560px;
+      margin: 32px auto 12px;
+      background: linear-gradient(180deg, var(--board-2) 0%, #131E18 100%);
+      border: 1px solid var(--rail);
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(232, 163, 61, 0.1);
+      border-radius: 10px;
+      padding: 34px 24px 26px;
+      text-align: center;
+      position: relative;
+    }
+    .slab::before {
+      content: "👑 CURRENT #1 LEADER";
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--amber);
+      color: #0F1713;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      padding: 4px 14px;
+      border-radius: 4px;
+      box-shadow: 0 4px 12px rgba(232, 163, 61, 0.35);
+    }
+    .leader-title-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+    .leader-name {
+      font-family: 'Fraunces', serif;
+      font-size: clamp(24px, 5vw, 32px);
+      font-weight: 700;
+      color: var(--ink);
+      text-decoration: none;
+      transition: color .15s ease;
+    }
+    .leader-name:hover { color: var(--amber); }
+    .leader-tagline {
+      color: var(--ink-dim);
+      font-size: 14px;
+      margin-bottom: 16px;
+      min-height: 20px;
+    }
+    .leader-price {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: clamp(48px, 10vw, 68px);
+      font-weight: 700;
+      color: var(--rise);
+      line-height: 1;
+      text-shadow: 0 0 24px rgba(95, 209, 139, 0.25);
+    }
+    .leader-price span {
+      font-size: 26px;
+      color: var(--ink-dim);
+      font-weight: 400;
+      margin-right: 2px;
+    }
+
+    /* ---- Bid Form ---- */
+    .form-card {
+      max-width: 560px;
+      margin: 20px auto 10px;
+      background: var(--board-2);
+      border: 1px solid var(--rail);
+      border-radius: 8px;
+      padding: 20px;
+    }
+    .form-row {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .input-field {
+      width: 100%;
+      background: #111A14;
+      border: 1px solid var(--rail);
+      border-radius: 6px;
+      padding: 13px 15px;
+      color: var(--ink);
+      font-family: 'Manrope', sans-serif;
+      font-size: 14px;
+      outline: none;
+      transition: border-color .15s ease, box-shadow .15s ease;
+    }
+    .input-field:focus {
+      border-color: var(--amber);
+      box-shadow: 0 0 0 2px rgba(232, 163, 61, 0.15);
+    }
+    .input-field::placeholder { color: var(--ink-muted); }
+    
+    .bid-action-btn {
+      width: 100%;
+      background: var(--amber);
+      color: #0F1713;
+      border: none;
+      border-radius: 6px;
+      padding: 15px 20px;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      font-size: 15px;
+      letter-spacing: .02em;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: transform .12s ease, background .12s ease, box-shadow .12s ease;
+      box-shadow: 0 4px 14px rgba(232, 163, 61, 0.25);
+    }
+    .bid-action-btn:hover:not(:disabled) {
+      background: var(--amber-hover);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(232, 163, 61, 0.35);
+    }
+    .bid-action-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .form-hints {
+      text-align: center;
+      color: var(--ink-dim);
+      font-size: 12px;
+      font-family: 'JetBrains Mono', monospace;
+      margin-top: 10px;
+    }
+    .form-hints b { color: var(--amber); }
+
+    .error-banner {
+      max-width: 560px;
+      margin: 12px auto;
+      padding: 12px 16px;
+      background: rgba(255, 107, 107, 0.12);
+      border: 1px solid rgba(255, 107, 107, 0.3);
+      border-radius: 6px;
+      color: var(--danger);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      text-align: center;
+      display: none;
+    }
+
+    /* ---- Leaderboard Ladder ---- */
+    .ladder-wrap {
+      max-width: 660px;
+      margin: 40px auto 0;
+      padding: 0 20px 80px;
+    }
+    .ladder-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+      padding: 0 4px;
+    }
+    .ladder-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      letter-spacing: .16em;
+      color: var(--ink-dim);
+      text-transform: uppercase;
+    }
+    .live-count {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--ink-muted);
+    }
+
+    .rung {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: var(--board-2);
+      border: 1px solid var(--rail);
+      border-left: 3px solid var(--rail);
+      border-radius: 6px;
+      padding: 14px 18px;
+      margin-bottom: 8px;
+      transition: all .25s ease;
+      position: relative;
+    }
+    .rung:hover {
+      border-color: #3B5345;
+      background: #1B2921;
+      transform: translateX(2px);
+    }
+    .rung.rank-1 {
+      border-left-color: var(--amber);
+      background: linear-gradient(90deg, rgba(232, 163, 61, 0.08) 0%, var(--board-2) 100%);
+    }
+    .rung.new {
+      animation: pop 0.6s ease;
+    }
+    @keyframes pop {
+      0% { transform: translateY(-10px) scale(0.98); background: #2A3F2C; }
+      100% { transform: translateY(0) scale(1); background: var(--board-2); }
+    }
+
+    .rank {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      color: var(--ink-muted);
+      width: 24px;
+      flex-shrink: 0;
+      font-weight: 600;
+    }
+    .rung.rank-1 .rank { color: var(--amber); }
+
+    .rung-body { flex: 1; min-width: 0; }
+    .rung-top-line { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+    .rung-name {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--ink);
+      text-decoration: none;
+    }
+    .rung-name:hover { color: var(--amber); text-decoration: underline; }
+    .rung-tagline {
+      font-size: 12px;
+      color: var(--ink-dim);
+      margin-top: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .rung-time {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--ink-muted);
+      margin-top: 3px;
+    }
+    .rung-price {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--rise);
+      flex-shrink: 0;
+    }
+
+    /* ---- Footer ---- */
+    footer {
+      border-top: 1px solid var(--rail);
+      background: #0B110E;
+      text-align: center;
+      padding: 36px 20px;
+      color: var(--ink-muted);
+      font-size: 12px;
+      font-family: 'JetBrains Mono', monospace;
+      line-height: 1.8;
+    }
+    footer a { color: var(--ink-dim); text-decoration: none; }
+    footer a:hover { color: var(--amber); }
+  </style>
+</head>
+<body>
+
+  <!-- Live Top Ticker -->
+  <div class="ticker-wrap">
+    <div class="ticker" id="ticker">
+      <span class="ticker-item">Loading live Indian startup bids...</span>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <header>
+    <div class="badge">
+      <div class="live-dot"></div>
+      India's Startup Boli Board
+    </div>
+    <h1 class="display">Pay ₹1 more.<br>Take the top spot.</h1>
+    <p class="subtitle">
+      The most viral marketing board for Indian founders & startups. Every bid raises the price by ₹1, puts your company at the crown, and stays on the permanent ledger.
+    </p>
+    <p class="taunt">Every minute you wait, <b>another founder claims your spot.</b></p>
+  </header>
+
+  <!-- #1 Spotlight Slab -->
+  <div class="slab">
+    <div class="leader-title-wrap">
+      <a href="#" id="leaderLink" target="_blank" rel="noopener noreferrer" class="leader-name">Loading...</a>
+    </div>
+    <div class="leader-tagline" id="leaderTagline">First startup to bid claims the crown</div>
+    <div class="leader-price"><span>₹</span><span id="leaderPrice">0</span></div>
+  </div>
+
+  <!-- Bid Submission Form -->
+  <div class="form-card">
+    <form id="bidForm">
+      <div class="form-row">
+        <input type="text" id="companyInput" class="input-field" placeholder="Startup / Founder Name *" maxlength="32" required autocomplete="off">
+        <input type="url" id="urlInput" class="input-field" placeholder="Website URL (e.g. https://yourstartup.com) *" required autocomplete="off">
+        <input type="text" id="taglineInput" class="input-field" placeholder="One-line pitch / tagline (e.g. AI for Sales)" maxlength="60" autocomplete="off">
+      </div>
+      <button type="submit" class="bid-action-btn" id="bidBtn">
+        <span>⚡ Outbid for ₹<span id="nextPrice">1</span></span>
+      </button>
+    </form>
+    <div class="form-hints">
+      Instant UPI / GPay / PhonePe / Cards · Boli climbs by ₹1 each turn
+    </div>
+  </div>
+
+  <div class="error-banner" id="errorBox"></div>
+
+  <!-- Leaderboard Ladder -->
+  <div class="ladder-wrap">
+    <div class="ladder-header">
+      <div class="ladder-title">The Boli Ladder</div>
+      <div class="live-count" id="bidCount">0 bids recorded</div>
+    </div>
+    <div id="ladder">
+      <!-- Dynamically rendered rungs -->
+    </div>
+  </div>
+
+  <footer>
+    <p>⚡ Powered by Razorpay & low-latency Indian Edge CDN</p>
+    <p>All bids are permanent & non-refundable marketing entries on the live board.</p>
+  </footer>
+
+  <script>
+    // Automatic backend detection (works in local, Render, Vercel, Netlify)
+    const API = window.location.origin.includes('localhost') || window.location.origin.includes('127.0.0.1')
+      ? 'http://localhost:3001'
+      : '';
+
+    let boardState = { current_price: 1, current_leader: 'Nobody yet', leader_url: '', leader_tagline: '' };
+    let bidsList = [];
+
+    function normalizeUrl(url) {
+      if (!url) return '';
+      let clean = url.trim();
+      if (!clean.startsWith('http://') && !clean.startsWith('https://')) {
+        clean = 'https://' + clean;
+      }
+      return clean;
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      const d = document.createElement('div');
+      d.textContent = str;
+      return d.innerHTML;
+    }
+
+    function formatTime(iso) {
+      try {
+        const d = new Date(iso);
+        return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ', ' + d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+      } catch (e) {
+        return 'just now';
+      }
+    }
+
+    function showError(msg) {
+      const b = document.getElementById('errorBox');
+      b.textContent = msg;
+      b.style.display = 'block';
+      setTimeout(() => { b.style.display = 'none'; }, 6000);
+    }
+
+    async function loadBoard() {
+      try {
+        const res = await fetch(`${API}/api/bids`);
+        if (!res.ok) throw new Error('API offline');
+        const data = await res.json();
+        boardState = data.board || boardState;
+        bidsList = data.bids || [];
+        render();
+      } catch (err) {
+        console.warn('Backend sync:', err.message);
+      }
+    }
+
+    function render(newest = false) {
+      const leaderLink = document.getElementById('leaderLink');
+      leaderLink.textContent = boardState.current_leader || 'Nobody yet';
+      const cleanUrl = normalizeUrl(boardState.leader_url);
+      if (cleanUrl) {
+        leaderLink.href = cleanUrl;
+        leaderLink.style.pointerEvents = 'auto';
+      } else {
+        leaderLink.removeAttribute('href');
+        leaderLink.style.pointerEvents = 'none';
+      }
+
+      document.getElementById('leaderTagline').textContent = boardState.leader_tagline || 'Leading the Boli Board';
+      document.getElementById('leaderPrice').textContent = Number(boardState.current_price || 0).toLocaleString('en-IN');
+      document.getElementById('nextPrice').textContent = Number((Number(boardState.current_price) || 0) + 1).toLocaleString('en-IN');
+      document.getElementById('bidCount').textContent = `${bidsList.length} bids recorded`;
+
+      // Render Ladder
+      const ladder = document.getElementById('ladder');
+      ladder.innerHTML = '';
+      bidsList.forEach((b, idx) => {
+        const row = document.createElement('div');
+        row.className = `rung ${idx === 0 ? 'rank-1' : ''} ${newest && idx === 0 ? 'new' : ''}`;
+        const bUrl = normalizeUrl(b.website_url);
+        
+        row.innerHTML = `
+          <div class="rank">${String(idx + 1).padStart(2, '0')}</div>
+          <div class="rung-body">
+            <div class="rung-top-line">
+              ${bUrl ? `<a href="${escapeHtml(bUrl)}" target="_blank" rel="noopener noreferrer" class="rung-name">${escapeHtml(b.company_name)} ↗</a>` : `<span class="rung-name">${escapeHtml(b.company_name)}</span>`}
+            </div>
+            ${b.tagline ? `<div class="rung-tagline">${escapeHtml(b.tagline)}</div>` : ''}
+            <div class="rung-time">${formatTime(b.created_at)}</div>
+          </div>
+          <div class="rung-price">₹${Number(b.price).toLocaleString('en-IN')}</div>
+        `;
+        ladder.appendChild(row);
+      });
+
+      // Render Ticker
+      const ticker = document.getElementById('ticker');
+      if (bidsList.length > 0) {
+        const items = bidsList.slice(0, 8).map(b => {
+          const u = normalizeUrl(b.website_url);
+          const nameHtml = u ? `<a href="${escapeHtml(u)}" target="_blank" rel="noopener noreferrer">${escapeHtml(b.company_name)}</a>` : escapeHtml(b.company_name);
+          return `<span class="ticker-item">${nameHtml} <b>took the crown for ₹${b.price}</b></span>`;
+        }).join('');
+        ticker.innerHTML = items + items; // Duplicate for smooth continuous scroll
+      }
+    }
+
+    // Submit Boli Form with Razorpay Checkout
+    document.getElementById('bidForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const btn = document.getElementById('bidBtn');
+      const companyInput = document.getElementById('companyInput');
+      const urlInput = document.getElementById('urlInput');
+      const taglineInput = document.getElementById('taglineInput');
+
+      const companyName = companyInput.value.trim();
+      const websiteUrl = normalizeUrl(urlInput.value);
+      const tagline = taglineInput.value.trim();
+
+      if (!companyName) { showError('Please enter your company / startup name.'); return; }
+      if (!websiteUrl) { showError('Please enter a valid website URL for visitors to click.'); return; }
+
+      btn.disabled = true;
+      btn.innerHTML = '<span>⏳ Preparing Razorpay Order...</span>';
+
+      try {
+        // 1. Create Razorpay order on backend
+        const orderRes = await fetch(`${API}/api/order`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ companyName, websiteUrl, tagline })
+        });
+
+        const orderData = await orderRes.json();
+        if (!orderRes.ok || orderData.error) {
+          throw new Error(orderData.error || 'Failed to initialize order');
+        }
+
+        // 2. Launch Razorpay Popup
+        const options = {
+          key: orderData.keyId,
+          amount: orderData.amount,
+          currency: 'INR',
+          name: 'BOLI — The Startup Board',
+          description: `Claim #1 Spot for ${companyName} (₹${orderData.nextPrice})`,
+          order_id: orderData.orderId,
+          handler: async function (response) {
+            btn.innerHTML = '<span>⚡ Verifying & Claiming Top Spot...</span>';
+            
+            // 3. Verify Razorpay signature on backend
+            const verifyRes = await fetch(`${API}/api/verify`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+                companyName,
+                websiteUrl,
+                tagline,
+                price: orderData.nextPrice
+              })
+            });
+
+            const verifyData = await verifyRes.json();
+            if (verifyData.success) {
+              companyInput.value = '';
+              urlInput.value = '';
+              taglineInput.value = '';
+              await loadBoard();
+              render(true);
+            } else {
+              showError(verifyData.error || 'Verification failed. Please reach out with your payment ID.');
+            }
+            btn.disabled = false;
+            btn.innerHTML = `<span>⚡ Outbid for ₹${Number(boardState.current_price + 1).toLocaleString('en-IN')}</span>`;
+          },
+          modal: {
+            ondismiss: function() {
+              btn.disabled = false;
+              btn.innerHTML = `<span>⚡ Outbid for ₹${Number(boardState.current_price + 1).toLocaleString('en-IN')}</span>`;
+            }
+          },
+          theme: { color: '#E8A33D' }
+        };
+
+        const rzp = new Razorpay(options);
+        rzp.on('payment.failed', function(resp) {
+          showError(`Payment failed: ${resp.error.description}`);
+          btn.disabled = false;
+          btn.innerHTML = `<span>⚡ Outbid for ₹${Number(boardState.current_price + 1).toLocaleString('en-IN')}</span>`;
+        });
+        rzp.open();
+
+      } catch (err) {
+        showError(err.message || 'Network error. Please try again.');
+        btn.disabled = false;
+        btn.innerHTML = `<span>⚡ Outbid for ₹${Number(boardState.current_price + 1).toLocaleString('en-IN')}</span>`;
+      }
+    });
+
+    // Initial Load and low-latency poll every 4 seconds
+    loadBoard();
+    setInterval(loadBoard, 4000);
+  </script>
+</body>
+</html>
