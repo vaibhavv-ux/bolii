@@ -9,6 +9,7 @@
   <!-- Speed & CDN Preconnects for Indian Latency Optimization -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://www.google.com">
   <link rel="preconnect" href="https://checkout.razorpay.com">
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
   
@@ -64,7 +65,7 @@
     .ticker-item {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
       margin-right: 42px;
       font-family: 'JetBrains Mono', monospace;
       font-size: 13px;
@@ -73,6 +74,28 @@
     .ticker-item b { color: var(--amber); }
     .ticker-item a { color: var(--ink); text-decoration: none; border-bottom: 1px dotted var(--amber); }
     .ticker-item a:hover { color: var(--amber); }
+    .ticker-logo {
+      width: 16px;
+      height: 16px;
+      border-radius: 4px;
+      object-fit: cover;
+      vertical-align: middle;
+      background: var(--board-3);
+    }
+    .ticker-avatar {
+      width: 16px;
+      height: 16px;
+      border-radius: 4px;
+      background: var(--amber);
+      color: #0F1713;
+      font-size: 10px;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      text-transform: uppercase;
+    }
+
     @keyframes scroll {
       0% { transform: translateX(0); }
       100% { transform: translateX(-100%); }
@@ -167,8 +190,36 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 8px;
-      margin-bottom: 4px;
+      gap: 12px;
+      margin-bottom: 6px;
+    }
+    .leader-logo-wrap {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .leader-logo-img {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      object-fit: cover;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      border: 1px solid var(--rail);
+      background: #111A14;
+    }
+    .leader-logo-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, var(--amber) 0%, #B87F2B 100%);
+      color: #0F1713;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 16px;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
     }
     .leader-name {
       font-family: 'Fraunces', serif;
@@ -315,7 +366,7 @@
     .rung {
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 12px;
       background: var(--board-2);
       border: 1px solid var(--rail);
       border-left: 3px solid var(--rail);
@@ -346,11 +397,48 @@
       font-family: 'JetBrains Mono', monospace;
       font-size: 13px;
       color: var(--ink-muted);
-      width: 24px;
+      width: 22px;
       flex-shrink: 0;
       font-weight: 600;
     }
     .rung.rank-1 .rank { color: var(--amber); }
+
+    /* ---- Logo Icon next to Rank ---- */
+    .rung-logo-wrap {
+      width: 28px;
+      height: 28px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .rung-logo-img {
+      width: 26px;
+      height: 26px;
+      border-radius: 6px;
+      object-fit: cover;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: #111A14;
+    }
+    .rung-logo-avatar {
+      width: 26px;
+      height: 26px;
+      border-radius: 6px;
+      background: var(--board-3);
+      border: 1px solid var(--rail);
+      color: var(--ink);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-transform: uppercase;
+    }
+    .rung.rank-1 .rung-logo-avatar {
+      background: var(--amber);
+      color: #0F1713;
+    }
 
     .rung-body { flex: 1; min-width: 0; }
     .rung-top-line { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
@@ -415,7 +503,7 @@
     </div>
     <h1 class="display">Pay ₹1 more.<br>Take the top spot.</h1>
     <p class="subtitle">
-      The most viral marketing board for Indian founders & startups. Every bid raises the price by ₹1, puts your company at the crown, and stays on the permanent ledger.
+      The ultimate marketing board for founders & startups. Every bid raises the price by ₹1, puts your company at the crown, and stays on the permanent ledger.
     </p>
     <p class="taunt">Every minute you wait, <b>another founder claims your spot.</b></p>
   </header>
@@ -423,6 +511,7 @@
   <!-- #1 Spotlight Slab -->
   <div class="slab">
     <div class="leader-title-wrap">
+      <span id="leaderLogoWrap" class="leader-logo-wrap"></span>
       <a href="#" id="leaderLink" target="_blank" rel="noopener noreferrer" class="leader-name">Loading...</a>
     </div>
     <div class="leader-tagline" id="leaderTagline">First startup to bid claims the crown</div>
@@ -434,8 +523,8 @@
     <form id="bidForm">
       <div class="form-row">
         <input type="text" id="companyInput" class="input-field" placeholder="Startup / Founder Name *" maxlength="32" required autocomplete="off">
-        <input type="url" id="urlInput" class="input-field" placeholder="Website URL (e.g. https://yourstartup.com) *" required autocomplete="off">
-        <input type="text" id="taglineInput" class="input-field" placeholder="One-line pitch / tagline (e.g. AI for Sales)" maxlength="60" autocomplete="off">
+        <input type="text" id="urlInput" class="input-field" placeholder="Website URL (optional — auto-fetches logo!)" autocomplete="off">
+        <input type="text" id="taglineInput" class="input-field" placeholder="One-line pitch / tagline (optional)" maxlength="60" autocomplete="off">
       </div>
       <button type="submit" class="bid-action-btn" id="bidBtn">
         <span>⚡ Outbid for ₹<span id="nextPrice">1</span></span>
@@ -476,10 +565,48 @@
     function normalizeUrl(url) {
       if (!url) return '';
       let clean = url.trim();
+      if (!clean) return '';
       if (!clean.startsWith('http://') && !clean.startsWith('https://')) {
         clean = 'https://' + clean;
       }
       return clean;
+    }
+
+    function extractDomain(url) {
+      if (!url) return '';
+      try {
+        const fullUrl = normalizeUrl(url);
+        const parsed = new URL(fullUrl);
+        return parsed.hostname.replace(/^www\./, '');
+      } catch (e) {
+        return url.replace(/^https?:\/\//, '').split('/')[0];
+      }
+    }
+
+    // High-speed Google Favicon CDN (Ultra-low latency in India)
+    function getFaviconUrl(url) {
+      const domain = extractDomain(url);
+      if (!domain) return '';
+      return `https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://${domain}&size=64`;
+    }
+
+    function renderLogoElement(name, url, isLeader = false) {
+      const initial = (name || '?').charAt(0).toUpperCase();
+      const faviconUrl = getFaviconUrl(url);
+      const imgClass = isLeader ? 'leader-logo-img' : 'rung-logo-img';
+      const avatarClass = isLeader ? 'leader-logo-avatar' : 'rung-logo-avatar';
+
+      if (faviconUrl) {
+        return `
+          <img src="${escapeHtml(faviconUrl)}" 
+               alt="${escapeHtml(name)}" 
+               class="${imgClass}" 
+               onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-flex';" 
+               loading="lazy">
+          <div class="${avatarClass}" style="display: none;">${escapeHtml(initial)}</div>
+        `;
+      }
+      return `<div class="${avatarClass}">${escapeHtml(initial)}</div>`;
     }
 
     function escapeHtml(str) {
@@ -519,6 +646,7 @@
     }
 
     function render(newest = false) {
+      // 1. Render Spotlight Leader
       const leaderLink = document.getElementById('leaderLink');
       leaderLink.textContent = boardState.current_leader || 'Nobody yet';
       const cleanUrl = normalizeUrl(boardState.leader_url);
@@ -530,12 +658,13 @@
         leaderLink.style.pointerEvents = 'none';
       }
 
+      document.getElementById('leaderLogoWrap').innerHTML = renderLogoElement(boardState.current_leader, boardState.leader_url, true);
       document.getElementById('leaderTagline').textContent = boardState.leader_tagline || 'Leading the Boli Board';
       document.getElementById('leaderPrice').textContent = Number(boardState.current_price || 0).toLocaleString('en-IN');
       document.getElementById('nextPrice').textContent = Number((Number(boardState.current_price) || 0) + 1).toLocaleString('en-IN');
       document.getElementById('bidCount').textContent = `${bidsList.length} bids recorded`;
 
-      // Render Ladder
+      // 2. Render Ladder
       const ladder = document.getElementById('ladder');
       ladder.innerHTML = '';
       bidsList.forEach((b, idx) => {
@@ -545,6 +674,9 @@
         
         row.innerHTML = `
           <div class="rank">${String(idx + 1).padStart(2, '0')}</div>
+          <div class="rung-logo-wrap">
+            ${renderLogoElement(b.company_name, b.website_url, false)}
+          </div>
           <div class="rung-body">
             <div class="rung-top-line">
               ${bUrl ? `<a href="${escapeHtml(bUrl)}" target="_blank" rel="noopener noreferrer" class="rung-name">${escapeHtml(b.company_name)} ↗</a>` : `<span class="rung-name">${escapeHtml(b.company_name)}</span>`}
@@ -557,15 +689,19 @@
         ladder.appendChild(row);
       });
 
-      // Render Ticker
+      // 3. Render Ticker with small icons
       const ticker = document.getElementById('ticker');
       if (bidsList.length > 0) {
         const items = bidsList.slice(0, 8).map(b => {
           const u = normalizeUrl(b.website_url);
+          const fav = getFaviconUrl(b.website_url);
+          const iconHtml = fav 
+            ? `<img src="${escapeHtml(fav)}" class="ticker-logo" onerror="this.outerHTML='<span class=\\'ticker-avatar\\'>${escapeHtml((b.company_name||'?')[0])}</span>'">`
+            : `<span class="ticker-avatar">${escapeHtml((b.company_name||'?')[0])}</span>`;
           const nameHtml = u ? `<a href="${escapeHtml(u)}" target="_blank" rel="noopener noreferrer">${escapeHtml(b.company_name)}</a>` : escapeHtml(b.company_name);
-          return `<span class="ticker-item">${nameHtml} <b>took the crown for ₹${b.price}</b></span>`;
+          return `<span class="ticker-item">${iconHtml} ${nameHtml} <b>took the crown for ₹${b.price}</b></span>`;
         }).join('');
-        ticker.innerHTML = items + items; // Duplicate for smooth continuous scroll
+        ticker.innerHTML = items + items; // Duplicate for smooth continuous loop
       }
     }
 
@@ -578,11 +714,11 @@
       const taglineInput = document.getElementById('taglineInput');
 
       const companyName = companyInput.value.trim();
-      const websiteUrl = normalizeUrl(urlInput.value);
+      const rawUrl = urlInput.value.trim();
+      const websiteUrl = rawUrl ? normalizeUrl(rawUrl) : '';
       const tagline = taglineInput.value.trim();
 
       if (!companyName) { showError('Please enter your company / startup name.'); return; }
-      if (!websiteUrl) { showError('Please enter a valid website URL for visitors to click.'); return; }
 
       btn.disabled = true;
       btn.innerHTML = '<span>⏳ Preparing Razorpay Order...</span>';
