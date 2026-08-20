@@ -17,21 +17,14 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// In-memory demo fallback store (used when DATABASE_URL is not set for smooth local previews)
+// Fresh brand-new initial store (Starts at ₹0, next boli is ₹1)
 const demoStore = {
   board: {
-    current_price: 341,
-    current_leader: 'KissanAI',
-    leader_url: 'https://kissan.ai',
-    leader_tagline: 'AI for 100M+ Indian Farmers in local languages',
+    current_price: 0,
+    current_leader: 'Nobody yet',
+    leader_url: '',
   },
-  bids: [
-    { company_name: 'KissanAI', website_url: 'https://kissan.ai', tagline: 'AI for 100M+ Indian Farmers in local languages', price: 341, created_at: new Date(Date.now() - 1000 * 60 * 3).toISOString() },
-    { company_name: 'Zepto Labs', website_url: 'https://zeptonow.com', tagline: '10-minute grocery delivery across India', price: 340, created_at: new Date(Date.now() - 1000 * 60 * 12).toISOString() },
-    { company_name: 'Jar App', website_url: 'https://myjar.app', tagline: 'Automated daily digital gold savings for Bharat', price: 339, created_at: new Date(Date.now() - 1000 * 60 * 25).toISOString() },
-    { company_name: 'Postman', website_url: 'https://postman.com', tagline: 'The worlds leading API platform', price: 338, created_at: new Date(Date.now() - 1000 * 60 * 45).toISOString() },
-    { company_name: 'Razorpay', website_url: 'https://razorpay.com', tagline: 'Financial architecture for Indian internet commerce', price: 337, created_at: new Date(Date.now() - 1000 * 60 * 70).toISOString() },
-  ]
+  bids: []
 };
 
 // Database connection pool
@@ -61,7 +54,7 @@ app.use(express.static(path.join(__dirname, 'public'), {
 
 // --- 1. Health check endpoint ---
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', db: pool ? 'postgres' : 'in-memory-demo', time: new Date().toISOString() });
+  res.json({ status: 'ok', db: pool ? 'postgres' : 'in-memory', time: new Date().toISOString() });
 });
 
 // --- 2. GET current board state + recent bids ---
@@ -77,10 +70,10 @@ app.get('/api/bids', async (req, res) => {
 
   try {
     const board = await pool.query(
-      'SELECT current_price, current_leader, leader_url, leader_tagline FROM board WHERE id = 1 LIMIT 1'
+      'SELECT current_price, current_leader, leader_url FROM board WHERE id = 1 LIMIT 1'
     );
     const bids = await pool.query(
-      'SELECT company_name, website_url, tagline, price, created_at FROM bids ORDER BY created_at DESC LIMIT 50'
+      'SELECT company_name, website_url, price, created_at FROM bids ORDER BY created_at DESC LIMIT 50'
     );
 
     res.json({
@@ -88,7 +81,7 @@ app.get('/api/bids', async (req, res) => {
       bids: bids.rows || [],
     });
   } catch (err) {
-    console.warn('DB read fallback to demo store:', err.message);
+    console.warn('DB read fallback:', err.message);
     res.json({
       board: demoStore.board,
       bids: demoStore.bids,
@@ -98,7 +91,7 @@ app.get('/api/bids', async (req, res) => {
 
 // --- 3. POST /api/order — Create Razorpay order for current price + 1 ---
 app.post('/api/order', async (req, res) => {
-  const { companyName, websiteUrl, tagline } = req.body;
+  const { companyName, websiteUrl } = req.body;
   if (!companyName || !companyName.trim()) {
     return res.status(400).json({ error: 'Company name is required.' });
   }
@@ -109,14 +102,17 @@ app.post('/api/order', async (req, res) => {
     try {
       const board = await pool.query('SELECT current_price FROM board WHERE id = 1');
       if (board.rows[0]) {
-        nextPrice = board.rows[0].current_price + 1;
+        nextPrice = Number(board.rows[0].current_price) + 1;
       }
     } catch (e) {
       console.warn('Could not read price from DB:', e.message);
     }
   }
 
-  // If Razorpay keys are placeholders, handle demo simulation for testing
+  // Ensure minimum bid is at least ₹1
+  nextPrice = Math.max(1, nextPrice);
+
+  // If Razorpay keys are placeholders, handle simulation for instant local testing
   if (!process.env.RAZORPAY_KEY_SECRET || process.env.RAZORPAY_KEY_SECRET === 'secret_placeholder') {
     return res.json({
       orderId: `order_demo_${Date.now()}`,
@@ -135,7 +131,6 @@ app.post('/api/order', async (req, res) => {
       notes: {
         companyName: companyName.trim().slice(0, 32),
         websiteUrl: (websiteUrl || '').trim().slice(0, 255),
-        tagline: (tagline || '').trim().slice(0, 60),
       },
     });
 
@@ -159,7 +154,6 @@ app.post('/api/verify', async (req, res) => {
     razorpay_signature,
     companyName,
     websiteUrl,
-    tagline,
     price,
   } = req.body;
 
@@ -182,12 +176,10 @@ app.post('/api/verify', async (req, res) => {
     current_price: finalPrice,
     current_leader: companyName.trim(),
     leader_url: (websiteUrl || '').trim(),
-    leader_tagline: (tagline || '').trim(),
   };
   demoStore.bids.unshift({
     company_name: companyName.trim(),
     website_url: (websiteUrl || '').trim(),
-    tagline: (tagline || '').trim(),
     price: finalPrice,
     created_at: new Date().toISOString(),
   });
@@ -200,30 +192,28 @@ app.post('/api/verify', async (req, res) => {
   try {
     await client.query('BEGIN');
     const current = await client.query('SELECT current_price FROM board WHERE id = 1 FOR UPDATE');
-    const latestPrice = current.rows[0] ? current.rows[0].current_price : 0;
-    const dbPrice = Math.max(latestPrice + 1, price);
+    const latestPrice = current.rows[0] ? Number(current.rows[0].current_price) : 0;
+    const dbPrice = Math.max(latestPrice + 1, price || 1);
 
     await client.query(
       `UPDATE board
        SET current_price = $1,
            current_leader = $2,
            leader_url = $3,
-           leader_tagline = $4,
            updated_at = now()
        WHERE id = 1`,
-      [dbPrice, companyName.trim(), (websiteUrl || '').trim(), (tagline || '').trim()]
+      [dbPrice, companyName.trim(), (websiteUrl || '').trim()]
     );
 
     await client.query(
-      `INSERT INTO bids (company_name, website_url, tagline, price, razorpay_order_id, razorpay_payment_id)
-       VALUES ($1, $2, $3, $4, $5, $6)`,
+      `INSERT INTO bids (company_name, website_url, price, razorpay_order_id, razorpay_payment_id)
+       VALUES ($1, $2, $3, $4, $5)`,
       [
         companyName.trim(),
         (websiteUrl || '').trim(),
-        (tagline || '').trim(),
         dbPrice,
-        razorpay_order_id || 'demo_order',
-        razorpay_payment_id || 'demo_pay',
+        razorpay_order_id || 'order_paid',
+        razorpay_payment_id || 'pay_confirmed',
       ]
     );
 

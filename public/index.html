@@ -59,14 +59,14 @@
     }
     .ticker {
       display: inline-block;
-      animation: scroll 24s linear infinite;
+      animation: scroll 22s linear infinite;
       padding-left: 100%;
     }
     .ticker-item {
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      margin-right: 42px;
+      margin-right: 48px;
       font-family: 'JetBrains Mono', monospace;
       font-size: 13px;
       color: var(--ink-dim);
@@ -378,6 +378,24 @@
       color: var(--ink-muted);
     }
 
+    .empty-state-box {
+      background: var(--board-2);
+      border: 1px dashed var(--rail);
+      border-radius: 8px;
+      padding: 36px 20px;
+      text-align: center;
+      color: var(--ink-dim);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    .empty-state-box b {
+      color: var(--amber);
+      display: block;
+      font-size: 15px;
+      margin-bottom: 6px;
+    }
+
     .rung {
       display: flex;
       align-items: center;
@@ -498,7 +516,12 @@
   <!-- Live Top Ticker -->
   <div class="ticker-wrap">
     <div class="ticker" id="ticker">
-      <span class="ticker-item">Loading live Indian startup bids...</span>
+      <span class="ticker-item">⚡ <b>BOLI IS LIVE</b> · First founder to bid ₹1 claims the #1 Crown!</span>
+      <span class="ticker-item">👑 Every boli raises the price by ₹1 · The board only climbs</span>
+      <span class="ticker-item">🚀 Put your startup on India's most competitive founder billboard</span>
+      <span class="ticker-item">⚡ <b>BOLI IS LIVE</b> · First founder to bid ₹1 claims the #1 Crown!</span>
+      <span class="ticker-item">👑 Every boli raises the price by ₹1 · The board only climbs</span>
+      <span class="ticker-item">🚀 Put your startup on India's most competitive founder billboard</span>
     </div>
   </div>
 
@@ -519,7 +542,7 @@
   <div class="slab">
     <div class="leader-title-wrap">
       <span id="leaderLogoWrap" class="leader-logo-wrap"></span>
-      <a href="#" id="leaderLink" target="_blank" rel="noopener noreferrer" class="leader-name">Loading...</a>
+      <a href="#" id="leaderLink" target="_blank" rel="noopener noreferrer" class="leader-name">Nobody yet</a>
     </div>
     <div class="leader-price"><span>₹</span><span id="leaderPrice">0</span></div>
   </div>
@@ -530,7 +553,7 @@
       <div class="form-row">
         <div class="field-group">
           <label class="field-label" for="companyInput">Startup / Founder Name *</label>
-          <input type="text" id="companyInput" class="input-field" placeholder="e.g. Zepto, KissanAI, or Your Name" maxlength="32" required autocomplete="off">
+          <input type="text" id="companyInput" class="input-field" placeholder="e.g. Your Startup or Founder Name" maxlength="32" required autocomplete="off">
         </div>
         <div class="field-group">
           <label class="field-label" for="urlInput">Website <span class="opt-tag">(Optional — auto-fetches your logo)</span></label>
@@ -555,7 +578,7 @@
       <div class="live-count" id="bidCount">0 bids recorded</div>
     </div>
     <div id="ladder">
-      <!-- Dynamically rendered rungs -->
+      <!-- Dynamically rendered rungs or empty state -->
     </div>
   </div>
 
@@ -570,7 +593,7 @@
       ? 'http://localhost:3001'
       : '';
 
-    let boardState = { current_price: 1, current_leader: 'Nobody yet', leader_url: '' };
+    let boardState = { current_price: 0, current_leader: 'Nobody yet', leader_url: '' };
     let bidsList = [];
 
     function normalizeUrl(url) {
@@ -602,7 +625,11 @@
     }
 
     function renderLogoElement(name, url, isLeader = false) {
-      const initial = (name || '?').charAt(0).toUpperCase();
+      if (!name || name === 'Nobody yet') {
+        const avatarClass = isLeader ? 'leader-logo-avatar' : 'rung-logo-avatar';
+        return `<div class="${avatarClass}">👑</div>`;
+      }
+      const initial = name.charAt(0).toUpperCase();
       const faviconUrl = getFaviconUrl(url);
       const imgClass = isLeader ? 'leader-logo-img' : 'rung-logo-img';
       const avatarClass = isLeader ? 'leader-logo-avatar' : 'rung-logo-avatar';
@@ -659,9 +686,11 @@
     function render(newest = false) {
       // 1. Render Spotlight Leader
       const leaderLink = document.getElementById('leaderLink');
-      leaderLink.textContent = boardState.current_leader || 'Nobody yet';
+      const isInitial = !boardState.current_leader || boardState.current_leader === 'Nobody yet';
+      leaderLink.textContent = isInitial ? 'Nobody yet' : boardState.current_leader;
+      
       const cleanUrl = normalizeUrl(boardState.leader_url);
-      if (cleanUrl) {
+      if (cleanUrl && !isInitial) {
         leaderLink.href = cleanUrl;
         leaderLink.style.pointerEvents = 'auto';
       } else {
@@ -671,34 +700,45 @@
 
       document.getElementById('leaderLogoWrap').innerHTML = renderLogoElement(boardState.current_leader, boardState.leader_url, true);
       document.getElementById('leaderPrice').textContent = Number(boardState.current_price || 0).toLocaleString('en-IN');
-      document.getElementById('nextPrice').textContent = Number((Number(boardState.current_price) || 0) + 1).toLocaleString('en-IN');
-      document.getElementById('bidCount').textContent = `${bidsList.length} bids recorded`;
+      const nextBoliPrice = Number(boardState.current_price || 0) + 1;
+      document.getElementById('nextPrice').textContent = Number(nextBoliPrice).toLocaleString('en-IN');
+      document.getElementById('bidCount').textContent = `${bidsList.length} ${bidsList.length === 1 ? 'bid' : 'bids'} recorded`;
 
       // 2. Render Ladder
       const ladder = document.getElementById('ladder');
       ladder.innerHTML = '';
-      bidsList.forEach((b, idx) => {
-        const row = document.createElement('div');
-        row.className = `rung ${idx === 0 ? 'rank-1' : ''} ${newest && idx === 0 ? 'new' : ''}`;
-        const bUrl = normalizeUrl(b.website_url);
-        
-        row.innerHTML = `
-          <div class="rank">${String(idx + 1).padStart(2, '0')}</div>
-          <div class="rung-logo-wrap">
-            ${renderLogoElement(b.company_name, b.website_url, false)}
+      
+      if (bidsList.length === 0) {
+        ladder.innerHTML = `
+          <div class="empty-state-box">
+            <b>👑 The throne is waiting!</b>
+            Be the first founder to bid ₹1 and take the #1 spot on India's Boli Board.
           </div>
-          <div class="rung-body">
-            <div class="rung-top-line">
-              ${bUrl ? `<a href="${escapeHtml(bUrl)}" target="_blank" rel="noopener noreferrer" class="rung-name">${escapeHtml(b.company_name)} ↗</a>` : `<span class="rung-name">${escapeHtml(b.company_name)}</span>`}
-            </div>
-            <div class="rung-time">${formatTime(b.created_at)}</div>
-          </div>
-          <div class="rung-price">₹${Number(b.price).toLocaleString('en-IN')}</div>
         `;
-        ladder.appendChild(row);
-      });
+      } else {
+        bidsList.forEach((b, idx) => {
+          const row = document.createElement('div');
+          row.className = `rung ${idx === 0 ? 'rank-1' : ''} ${newest && idx === 0 ? 'new' : ''}`;
+          const bUrl = normalizeUrl(b.website_url);
+          
+          row.innerHTML = `
+            <div class="rank">${String(idx + 1).padStart(2, '0')}</div>
+            <div class="rung-logo-wrap">
+              ${renderLogoElement(b.company_name, b.website_url, false)}
+            </div>
+            <div class="rung-body">
+              <div class="rung-top-line">
+                ${bUrl ? `<a href="${escapeHtml(bUrl)}" target="_blank" rel="noopener noreferrer" class="rung-name">${escapeHtml(b.company_name)} ↗</a>` : `<span class="rung-name">${escapeHtml(b.company_name)}</span>`}
+              </div>
+              <div class="rung-time">${formatTime(b.created_at)}</div>
+            </div>
+            <div class="rung-price">₹${Number(b.price).toLocaleString('en-IN')}</div>
+          `;
+          ladder.appendChild(row);
+        });
+      }
 
-      // 3. Render Ticker with small icons
+      // 3. Render Ticker
       const ticker = document.getElementById('ticker');
       if (bidsList.length > 0) {
         const items = bidsList.slice(0, 8).map(b => {
