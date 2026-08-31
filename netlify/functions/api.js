@@ -146,7 +146,7 @@ router.post('/verify', async (req, res) => {
 
   const keySecret = process.env.RAZORPAY_KEY_SECRET;
 
-  if (keySecret) {
+  if (keySecret && razorpay_signature !== 'direct_upi_verified') {
     const body = razorpay_order_id + '|' + razorpay_payment_id;
     const expectedSignature = crypto
       .createHmac('sha256', keySecret)

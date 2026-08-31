@@ -1126,14 +1126,29 @@
       }
     });
 
+    // Load initial state from localStorage if available
+    try {
+      const savedBoard = localStorage.getItem('boli_board');
+      const savedBids = localStorage.getItem('boli_bids');
+      if (savedBoard) boardState = JSON.parse(savedBoard);
+      if (savedBids) bidsList = JSON.parse(savedBids);
+      render();
+    } catch(e) {}
+
     async function loadBoard() {
       try {
         const res = await fetch(`${API}/api/bids`);
         if (!res.ok) throw new Error('API offline');
         const data = await res.json();
-        boardState = data.board || boardState;
-        bidsList = data.bids || [];
-        render();
+        
+        // Only update if server has bids or higher price
+        if (data.bids && data.bids.length >= bidsList.length) {
+          boardState = data.board || boardState;
+          bidsList = data.bids || [];
+          localStorage.setItem('boli_board', JSON.stringify(boardState));
+          localStorage.setItem('boli_bids', JSON.stringify(bidsList));
+          render();
+        }
       } catch (err) {
         console.warn('Backend sync:', err.message);
       }
@@ -1281,6 +1296,11 @@
         price: pendingBid.price,
         created_at: new Date().toISOString()
       });
+
+      try {
+        localStorage.setItem('boli_board', JSON.stringify(boardState));
+        localStorage.setItem('boli_bids', JSON.stringify(bidsList));
+      } catch(e) {}
 
       document.getElementById('companyInput').value = '';
       document.getElementById('urlInput').value = '';
