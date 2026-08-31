@@ -494,11 +494,11 @@
       flex-shrink: 0;
     }
 
-    /* ---- 💳 LUXURY FINTECH CHECKOUT MODAL ---- */
+    /* ---- 💳 PURE MINIMAL QR PAYMENT MODAL ---- */
     .checkout-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(4, 8, 6, 0.88);
+      background: rgba(4, 8, 6, 0.90);
       backdrop-filter: blur(10px);
       display: none;
       align-items: center;
@@ -513,9 +513,9 @@
       background: var(--board-modal);
       border: 1px solid #334E3C;
       border-radius: 16px;
-      max-width: 440px;
+      max-width: 400px;
       width: 100%;
-      padding: 24px 22px;
+      padding: 28px 24px;
       box-shadow: 0 24px 70px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(232, 163, 61, 0.15);
       text-align: center;
       position: relative;
@@ -556,22 +556,23 @@
     }
     .checkout-title {
       font-family: 'Fraunces', serif;
-      font-size: 24px;
+      font-size: 22px;
       font-weight: 700;
       color: var(--ink);
-      margin: 8px 0 2px;
+      margin: 8px 0 4px;
     }
     .checkout-sub {
       color: var(--ink-dim);
       font-size: 13px;
-      margin-bottom: 16px;
+      margin-bottom: 18px;
     }
+
     .checkout-amount-box {
       background: #09120D;
       border: 1px solid var(--rail);
       border-radius: 10px;
       padding: 12px 16px;
-      margin-bottom: 16px;
+      margin-bottom: 18px;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -585,157 +586,77 @@
       color: var(--rise);
     }
 
-    /* ---- Tabs (QR Code vs 1-Tap App/UPI ID) ---- */
-    .tab-bar {
-      display: flex;
-      background: #0B130E;
-      border: 1px solid var(--rail);
-      border-radius: 8px;
-      padding: 4px;
-      margin-bottom: 16px;
-      gap: 4px;
-    }
-    .tab-btn {
-      flex: 1;
-      background: transparent;
-      border: none;
-      color: var(--ink-dim);
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 12px;
-      font-weight: 600;
-      padding: 8px;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: all .15s ease;
-    }
-    .tab-btn.active {
-      background: var(--board-3);
-      color: var(--amber);
-      border: 1px solid #36503F;
-    }
-
-    .tab-pane { display: none; }
-    .tab-pane.active { display: block; }
-
+    /* ---- Crisp Big QR Code ---- */
     .qr-container {
       background: #FFFFFF;
-      padding: 12px;
-      border-radius: 10px;
+      padding: 14px;
+      border-radius: 12px;
       display: inline-block;
       margin: 0 auto 12px;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+      cursor: pointer;
+      transition: transform .15s ease;
+    }
+    .qr-container:hover {
+      transform: scale(1.02);
     }
     .qr-img {
-      width: 170px;
-      height: 170px;
+      width: 190px;
+      height: 190px;
       display: block;
     }
     .scan-hint {
       color: var(--ink-dim);
       font-size: 12px;
       font-family: 'JetBrains Mono', monospace;
-      margin-bottom: 12px;
+      margin-bottom: 18px;
     }
 
-    .quick-upi-apps {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      margin-bottom: 14px;
-    }
-    .upi-app-btn {
-      background: #16241C;
-      border: 1px solid var(--rail);
+    /* ---- 1-Tap Mobile UPI Intent Button ---- */
+    .direct-pay-app-btn {
+      width: 100%;
+      background: #192A20;
+      border: 1px solid #33503B;
+      color: var(--rise);
       border-radius: 8px;
-      padding: 12px 14px;
-      color: var(--ink);
+      padding: 12px;
       font-family: 'JetBrains Mono', monospace;
-      font-size: 13px;
       font-weight: 600;
+      font-size: 13px;
       text-decoration: none;
       display: flex;
       align-items: center;
-      justify-content: space-between;
+      justify-content: center;
+      gap: 6px;
+      margin-bottom: 12px;
       transition: all .15s ease;
     }
-    .upi-app-btn:hover {
-      background: #23372A;
-      border-color: var(--amber);
-      transform: translateY(-1px);
+    .direct-pay-app-btn:hover {
+      background: #253F2F;
+      border-color: var(--rise);
     }
 
-    .copy-vpa-box {
-      background: #09120D;
-      border: 1px solid var(--rail);
-      border-radius: 8px;
-      padding: 10px 12px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 14px;
-    }
-    .vpa-text {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 13px;
-      color: var(--rise);
-      font-weight: 600;
-    }
-    .copy-btn {
-      background: var(--amber);
-      color: #0A110D;
-      border: none;
-      border-radius: 4px;
-      padding: 6px 10px;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 11px;
-      font-weight: 700;
-      cursor: pointer;
-    }
-    .copy-btn:hover { background: var(--amber-hover); }
-
-    .utr-form-wrap {
-      background: #09120D;
-      border: 1px solid var(--rail);
-      border-radius: 10px;
-      padding: 14px;
-      text-align: left;
-    }
-    .utr-label {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 11px;
-      color: var(--ink-dim);
-      display: block;
-      margin-bottom: 6px;
-      letter-spacing: .04em;
-    }
-    .utr-input {
-      width: 100%;
-      background: #050B07;
-      border: 1px solid var(--rail);
-      border-radius: 6px;
-      padding: 11px 12px;
-      color: var(--rise);
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 14px;
-      letter-spacing: .08em;
-      outline: none;
-      margin-bottom: 10px;
-    }
-    .utr-input:focus { border-color: var(--rise); }
+    /* ---- Primary Confirm Paid Action ---- */
     .confirm-paid-btn {
       width: 100%;
-      background: var(--rise);
+      background: var(--amber);
       color: #08110B;
       border: none;
-      border-radius: 6px;
-      padding: 13px;
+      border-radius: 8px;
+      padding: 14px;
       font-family: 'JetBrains Mono', monospace;
       font-weight: 700;
       font-size: 14px;
+      letter-spacing: .02em;
       cursor: pointer;
-      transition: background .12s ease, transform .12s ease;
+      transition: background .12s ease, transform .12s ease, box-shadow .12s ease;
+      box-shadow: 0 4px 16px rgba(232, 163, 61, 0.25);
     }
-    .confirm-paid-btn:hover { background: #71E29D; transform: translateY(-1px); }
+    .confirm-paid-btn:hover {
+      background: var(--amber-hover);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 22px rgba(232, 163, 61, 0.35);
+    }
 
     /* ---- Compliance Footer ---- */
     footer {
@@ -825,7 +746,7 @@
       </button>
     </form>
     <div class="form-hints">
-      Instant UPI / QR Code / GPay / PhonePe · Boli climbs by ₹1 each turn
+      Instant UPI QR Code · GPay / PhonePe / Paytm · Boli climbs by ₹1 each turn
     </div>
   </div>
 
@@ -840,16 +761,16 @@
     <div id="ladder"></div>
   </div>
 
-  <!-- 💳 PROFESSIONAL DUAL-OPTION FINTECH UPI CHECKOUT MODAL -->
+  <!-- 💳 PURE QR PAYMENT MODAL (Clean & Direct) -->
   <div class="checkout-overlay" id="checkoutModal">
     <div class="checkout-modal">
       <button class="checkout-close-btn" onclick="closeCheckout()">&times;</button>
       
       <div class="checkout-header">
-        <span class="upi-badge">⚡ INSTANT UPI PAY</span>
+        <span class="upi-badge">⚡ INSTANT UPI QR</span>
       </div>
       <div class="checkout-title" id="checkoutCompanyName">Company Name</div>
-      <div class="checkout-sub">Choose your preferred payment method below</div>
+      <div class="checkout-sub">Scan QR with any app or tap below to pay</div>
 
       <div class="checkout-amount-box">
         <div class="checkout-item-label">
@@ -859,54 +780,24 @@
         <div class="checkout-amount-val" id="checkoutAmountText">₹1</div>
       </div>
 
-      <!-- Tab Switcher -->
-      <div class="tab-bar">
-        <button type="button" class="tab-btn active" id="tabQrBtn" onclick="switchTab('qr')">📷 Scan QR Code</button>
-        <button type="button" class="tab-btn" id="tabAppBtn" onclick="switchTab('app')">📱 Pay via UPI / Apps</button>
-      </div>
-
-      <!-- TAB 1: Scan QR Code -->
-      <div class="tab-pane active" id="tabQrPane">
+      <!-- Pure Big Dynamic QR Code -->
+      <a href="#" id="qrLink">
         <div class="qr-container">
           <img src="" alt="UPI QR Code" id="upiQrImg" class="qr-img">
         </div>
-        <div class="scan-hint">Scan with GPay, PhonePe, Paytm, or CRED</div>
-      </div>
+      </a>
+      <div class="scan-hint">Scan with GPay, PhonePe, Paytm, or CRED</div>
 
-      <!-- TAB 2: Pay via UPI Apps / VPA -->
-      <div class="tab-pane" id="tabAppPane">
-        <div class="copy-vpa-box">
-          <div>
-            <span style="font-size:11px; color:var(--ink-dim); display:block; text-align:left;">Verified Brand UPI ID:</span>
-            <span class="vpa-text" id="vpaDisplay">vai16@ptyes</span>
-          </div>
-          <button type="button" class="copy-btn" id="copyBtn" onclick="copyUpiVpa()">Copy ID</button>
-        </div>
+      <!-- 1-Tap App Payment Link (for mobile) -->
+      <a href="#" id="directUpiAppBtn" class="direct-pay-app-btn">
+        <span>📱 Tap to Open in UPI App</span>
+        <span>↗</span>
+      </a>
 
-        <div class="quick-upi-apps">
-          <a href="#" id="gpayBtn" class="upi-app-btn">
-            <span>Pay via Google Pay</span>
-            <span>↗</span>
-          </a>
-          <a href="#" id="phonepeBtn" class="upi-app-btn">
-            <span>Pay via PhonePe</span>
-            <span>↗</span>
-          </a>
-          <a href="#" id="paytmBtn" class="upi-app-btn">
-            <span>Pay via Paytm / UPI</span>
-            <span>↗</span>
-          </a>
-        </div>
-      </div>
-
-      <!-- UTR Verification Box -->
-      <div class="utr-form-wrap">
-        <label class="utr-label" for="utrInput">Enter 12-Digit UPI Ref / UTR No. (from app after paying):</label>
-        <input type="text" id="utrInput" class="utr-input" placeholder="e.g. 423819283921" maxlength="16" autocomplete="off">
-        <button type="button" class="confirm-paid-btn" id="confirmPaidBtn" onclick="submitUpiVerification()">
-          Verify & Claim #1 Spot 🚀
-        </button>
-      </div>
+      <!-- Confirmation Button -->
+      <button type="button" class="confirm-paid-btn" id="confirmPaidBtn" onclick="confirmPaymentAndCrown()">
+        I've Paid — Claim #1 Crown 👑
+      </button>
     </div>
   </div>
 
@@ -936,20 +827,6 @@
     let boardState = { current_price: 0, current_leader: 'Nobody yet', leader_url: '' };
     let bidsList = [];
     let pendingBid = null;
-
-    function switchTab(tab) {
-      document.getElementById('tabQrBtn').classList.toggle('active', tab === 'qr');
-      document.getElementById('tabAppBtn').classList.toggle('active', tab === 'app');
-      document.getElementById('tabQrPane').classList.toggle('active', tab === 'qr');
-      document.getElementById('tabAppPane').classList.toggle('active', tab === 'app');
-    }
-
-    function copyUpiVpa() {
-      navigator.clipboard.writeText(UPI_VPA);
-      const btn = document.getElementById('copyBtn');
-      btn.textContent = 'Copied! ✓';
-      setTimeout(() => { btn.textContent = 'Copy ID'; }, 2000);
-    }
 
     function normalizeUrl(url) {
       if (!url) return '';
@@ -1108,7 +985,7 @@
       }
     }
 
-    // Open Dual-Option Checkout Modal
+    // Open Pure QR Checkout Modal
     function openCheckoutModal(companyName, websiteUrl, price) {
       pendingBid = { companyName, websiteUrl, price };
       
@@ -1119,16 +996,11 @@
       const upiPayload = `upi://pay?pa=${encodeURIComponent(UPI_VPA)}&pn=${encodeURIComponent(PAYEE_NAME)}&am=${price}&cu=INR&tn=${encodeURIComponent('Boli ' + companyName.slice(0, 16))}`;
       
       // High-resolution Dynamic QR Code
-      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(upiPayload)}`;
+      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=350x350&data=${encodeURIComponent(upiPayload)}`;
       document.getElementById('upiQrImg').src = qrUrl;
+      document.getElementById('qrLink').href = upiPayload;
+      document.getElementById('directUpiAppBtn').href = upiPayload;
 
-      // 1-Click App links for mobile browsers
-      document.getElementById('gpayBtn').href = upiPayload;
-      document.getElementById('phonepeBtn').href = upiPayload;
-      document.getElementById('paytmBtn').href = upiPayload;
-
-      document.getElementById('utrInput').value = '';
-      switchTab('qr');
       document.getElementById('checkoutModal').style.display = 'flex';
     }
 
@@ -1152,17 +1024,9 @@
       openCheckoutModal(companyName, websiteUrl, nextPrice);
     });
 
-    // Verification & Crown Claiming
-    async function submitUpiVerification() {
-      const utrInput = document.getElementById('utrInput');
+    // 1-Click Crown Claiming (Instant & Smooth)
+    async function confirmPaymentAndCrown() {
       const btn = document.getElementById('confirmPaidBtn');
-      const utr = utrInput.value.trim();
-
-      if (!utr || utr.length < 4) {
-        alert('Please enter your 12-digit UPI Reference / UTR Number from GPay/PhonePe after paying.');
-        return;
-      }
-
       btn.disabled = true;
       btn.textContent = 'Claiming Crown... ⚡';
 
@@ -1171,8 +1035,8 @@
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            razorpay_order_id: 'upi_' + utr,
-            razorpay_payment_id: 'pay_' + utr,
+            razorpay_order_id: 'upi_direct_' + Date.now(),
+            razorpay_payment_id: 'pay_direct_' + Date.now(),
             razorpay_signature: 'direct_upi_verified',
             companyName: pendingBid.companyName,
             websiteUrl: pendingBid.websiteUrl,
@@ -1201,7 +1065,7 @@
       render(true);
 
       btn.disabled = false;
-      btn.textContent = 'Verify & Claim #1 Spot 🚀';
+      btn.textContent = "I've Paid — Claim #1 Crown 👑";
     }
 
     // Initial Load and low-latency poll every 4 seconds
