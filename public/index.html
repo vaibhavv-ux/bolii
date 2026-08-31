@@ -9,7 +9,10 @@
   <!-- Speed & CDN Preconnects for Indian Latency Optimization -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://unavatar.io">
   <link rel="preconnect" href="https://api.qrserver.com">
+  <link rel="preconnect" href="https://icons.duckduckgo.com">
+  <link rel="preconnect" href="https://t2.gstatic.com">
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
 
   <style>
@@ -72,16 +75,17 @@
     .ticker-item a { color: var(--ink); text-decoration: none; border-bottom: 1px dotted var(--amber); }
     .ticker-item a:hover { color: var(--amber); }
     .ticker-logo {
-      width: 16px;
-      height: 16px;
+      width: 18px;
+      height: 18px;
       border-radius: 4px;
       object-fit: cover;
       vertical-align: middle;
-      background: var(--board-3);
+      background: #FFFFFF;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.3);
     }
     .ticker-avatar {
-      width: 16px;
-      height: 16px;
+      width: 18px;
+      height: 18px;
       border-radius: 4px;
       background: var(--amber);
       color: #0A110D;
@@ -196,27 +200,27 @@
       justify-content: center;
     }
     .leader-logo-img {
-      width: 32px;
-      height: 32px;
+      width: 36px;
+      height: 36px;
       border-radius: 8px;
       object-fit: cover;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.4);
       border: 1px solid var(--rail);
-      background: #111A14;
+      background: #FFFFFF;
     }
     .leader-logo-avatar {
-      width: 32px;
-      height: 32px;
+      width: 36px;
+      height: 36px;
       border-radius: 8px;
       background: linear-gradient(135deg, var(--amber) 0%, #B87F2B 100%);
       color: #0A110D;
       font-family: 'JetBrains Mono', monospace;
-      font-size: 16px;
+      font-size: 18px;
       font-weight: 700;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.4);
     }
     .leader-name {
       font-family: 'Fraunces', serif;
@@ -253,6 +257,7 @@
       border-radius: 10px;
       padding: 22px;
       box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      position: relative;
     }
     .form-row {
       display: flex;
@@ -265,6 +270,7 @@
       flex-direction: column;
       gap: 6px;
       text-align: left;
+      position: relative;
     }
     .field-label {
       font-family: 'JetBrains Mono', monospace;
@@ -272,12 +278,21 @@
       color: var(--ink-dim);
       letter-spacing: .05em;
       text-transform: uppercase;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
     .field-label .opt-tag {
       color: var(--amber);
       font-weight: 600;
       text-transform: none;
       font-size: 11px;
+    }
+
+    .input-with-preview {
+      position: relative;
+      display: flex;
+      align-items: center;
     }
     .input-field {
       width: 100%;
@@ -297,6 +312,81 @@
     }
     .input-field::placeholder { color: var(--ink-muted); }
     
+    /* Live Logo Badge inside input */
+    .live-logo-badge {
+      position: absolute;
+      right: 10px;
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      background: #FFFFFF;
+      border: 1px solid var(--rail);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      z-index: 5;
+    }
+    .live-logo-badge img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .live-logo-badge span {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      font-weight: 700;
+      color: #0A110D;
+      background: var(--amber);
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Auto-Suggestion Dropdown */
+    .suggestions-dropdown {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: #111B15;
+      border: 1px solid #334E3C;
+      border-radius: 8px;
+      margin-top: 4px;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.6);
+      z-index: 100;
+      display: none;
+      overflow: hidden;
+    }
+    .suggestion-item {
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--ink);
+      transition: background .12s ease;
+      border-bottom: 1px solid #1A2820;
+    }
+    .suggestion-item:last-child { border-bottom: none; }
+    .suggestion-item:hover {
+      background: #1B2C21;
+      color: var(--amber);
+    }
+    .suggestion-icon {
+      width: 22px;
+      height: 22px;
+      border-radius: 4px;
+      object-fit: cover;
+      background: #FFFFFF;
+      flex-shrink: 0;
+    }
+
     .bid-action-btn {
       width: 100%;
       background: var(--amber);
@@ -436,30 +526,31 @@
 
     /* ---- Logo Icon next to Rank ---- */
     .rung-logo-wrap {
-      width: 28px;
-      height: 28px;
+      width: 30px;
+      height: 30px;
       flex-shrink: 0;
       display: flex;
       align-items: center;
       justify-content: center;
     }
     .rung-logo-img {
-      width: 26px;
-      height: 26px;
+      width: 28px;
+      height: 28px;
       border-radius: 6px;
       object-fit: cover;
-      border: 1px solid rgba(255,255,255,0.1);
-      background: #111A14;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: #FFFFFF;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.3);
     }
     .rung-logo-avatar {
-      width: 26px;
-      height: 26px;
+      width: 28px;
+      height: 28px;
       border-radius: 6px;
       background: var(--board-3);
       border: 1px solid var(--rail);
       color: var(--ink);
       font-family: 'JetBrains Mono', monospace;
-      font-size: 12px;
+      font-size: 13px;
       font-weight: 700;
       display: flex;
       align-items: center;
@@ -586,7 +677,6 @@
       color: var(--rise);
     }
 
-    /* ---- Crisp Big QR Code ---- */
     .qr-container {
       background: #FFFFFF;
       padding: 14px;
@@ -597,14 +687,8 @@
       cursor: pointer;
       transition: transform .15s ease;
     }
-    .qr-container:hover {
-      transform: scale(1.02);
-    }
-    .qr-img {
-      width: 190px;
-      height: 190px;
-      display: block;
-    }
+    .qr-container:hover { transform: scale(1.02); }
+    .qr-img { width: 190px; height: 190px; display: block; }
     .scan-hint {
       color: var(--ink-dim);
       font-size: 12px;
@@ -612,7 +696,6 @@
       margin-bottom: 18px;
     }
 
-    /* ---- 1-Tap Mobile UPI Intent Button ---- */
     .direct-pay-app-btn {
       width: 100%;
       background: #192A20;
@@ -636,7 +719,6 @@
       border-color: var(--rise);
     }
 
-    /* ---- Primary Confirm Paid Action ---- */
     .confirm-paid-btn {
       width: 100%;
       background: var(--amber);
@@ -734,11 +816,23 @@
       <div class="form-row">
         <div class="field-group">
           <label class="field-label" for="companyInput">Startup / Founder Name *</label>
-          <input type="text" id="companyInput" class="input-field" placeholder="e.g. Your Startup or Founder Name" maxlength="32" required autocomplete="off">
+          <div class="input-with-preview">
+            <input type="text" id="companyInput" class="input-field" placeholder="e.g. Blinkit, Zepto, or Your Name" maxlength="32" required autocomplete="off">
+            <div id="companyLogoBadge" class="live-logo-badge"></div>
+          </div>
         </div>
+        
         <div class="field-group">
-          <label class="field-label" for="urlInput">Website <span class="opt-tag">(Optional — auto-fetches your logo)</span></label>
-          <input type="text" id="urlInput" class="input-field" placeholder="e.g. yourstartup.com (Optional)" autocomplete="off">
+          <label class="field-label" for="urlInput">
+            <span>Website / X Handle / App</span>
+            <span class="opt-tag">Auto-fetches Logo ⚡</span>
+          </label>
+          <div class="input-with-preview">
+            <input type="text" id="urlInput" class="input-field" placeholder="e.g. blinkit.com or @blinkit (Optional)" autocomplete="off">
+            <div id="urlLogoBadge" class="live-logo-badge"></div>
+          </div>
+          <!-- Real-Time Auto Suggestion Dropdown -->
+          <div id="suggestionsDropdown" class="suggestions-dropdown"></div>
         </div>
       </div>
       <button type="submit" class="bid-action-btn" id="bidBtn">
@@ -761,7 +855,7 @@
     <div id="ladder"></div>
   </div>
 
-  <!-- 💳 PURE QR PAYMENT MODAL (Clean & Direct) -->
+  <!-- 💳 PURE QR PAYMENT MODAL -->
   <div class="checkout-overlay" id="checkoutModal">
     <div class="checkout-modal">
       <button class="checkout-close-btn" onclick="closeCheckout()">&times;</button>
@@ -820,39 +914,89 @@
       ? 'http://localhost:3001'
       : '';
 
-    // Verified Brand VPA (100% phone number hidden)
+    // Verified Brand VPA
     const UPI_VPA = 'vai16@ptyes';
     const PAYEE_NAME = 'BOLI — The Startup Board';
 
     let boardState = { current_price: 0, current_leader: 'Nobody yet', leader_url: '' };
     let bidsList = [];
     let pendingBid = null;
+    let typingTimer = null;
 
-    function normalizeUrl(url) {
-      if (!url) return '';
-      let clean = url.trim();
-      if (!clean) return '';
-      if (!clean.startsWith('http://') && !clean.startsWith('https://')) {
-        clean = 'https://' + clean;
+    // --- MULTI-SOURCE INTELLIGENT LOGO ENGINE ---
+    function parseInputTarget(raw) {
+      if (!raw) return { type: 'none', query: '', cleanUrl: '' };
+      let str = raw.trim();
+      if (!str) return { type: 'none', query: '', cleanUrl: '' };
+
+      // 1. Twitter / X Handle (e.g. @blinkit, twitter.com/blinkit, x.com/blinkit)
+      if (str.startsWith('@')) {
+        const handle = str.slice(1).replace(/[^a-zA-Z0-9_]/g, '');
+        return { type: 'twitter', handle, query: handle, cleanUrl: `https://x.com/${handle}` };
       }
-      return clean;
+      if (str.includes('twitter.com/') || str.includes('x.com/')) {
+        const parts = str.split(/(?:twitter\.com\/|x\.com\/)/i);
+        const handle = parts[1] ? parts[1].split('/')[0].split('?')[0].replace(/[^a-zA-Z0-9_]/g, '') : '';
+        return { type: 'twitter', handle, query: handle, cleanUrl: `https://x.com/${handle}` };
+      }
+
+      // 2. PlayStore App
+      if (str.includes('play.google.com/store/apps/details?id=')) {
+        const appId = str.split('id=')[1].split('&')[0];
+        return { type: 'playstore', appId, query: appId, cleanUrl: str };
+      }
+
+      // 3. Regular Domain or Startup Name
+      let domain = str.replace(/^https?:\/\//i, '').replace(/^www\./i, '').split('/')[0].split('?')[0].trim();
+      if (!domain.includes('.') && domain.length > 2) {
+        domain = domain + '.com';
+      }
+      return {
+        type: 'domain',
+        domain,
+        query: domain,
+        cleanUrl: str.startsWith('http') ? str : `https://${domain}`
+      };
     }
 
-    function extractDomain(url) {
-      if (!url) return '';
-      try {
-        const fullUrl = normalizeUrl(url);
-        const parsed = new URL(fullUrl);
-        return parsed.hostname.replace(/^www\./, '');
-      } catch (e) {
-        return url.replace(/^https?:\/\//, '').split('/')[0];
+    function getLogoSources(parsed, nameFallback = '') {
+      if (!parsed || parsed.type === 'none') {
+        if (nameFallback) {
+          const cleanName = nameFallback.toLowerCase().replace(/[^a-z0-9]/g, '');
+          if (cleanName.length > 2) {
+            const domain = cleanName + '.com';
+            return [
+              `https://unavatar.io/${domain}?fallback=https://icons.duckduckgo.com/ip3/${domain}.ico`,
+              `https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://${domain}&size=128`,
+              `https://icons.duckduckgo.com/ip3/${domain}.ico`
+            ];
+          }
+        }
+        return [];
       }
-    }
 
-    function getFaviconUrl(url) {
-      const domain = extractDomain(url);
-      if (!domain) return '';
-      return `https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://${domain}&size=64`;
+      if (parsed.type === 'twitter') {
+        return [
+          `https://unavatar.io/x/${parsed.handle}`,
+          `https://unavatar.io/twitter/${parsed.handle}`,
+          `https://unavatar.io/${parsed.handle}.com?fallback=https://icons.duckduckgo.com/ip3/${parsed.handle}.com.ico`
+        ];
+      }
+
+      if (parsed.type === 'playstore') {
+        return [
+          `https://unavatar.io/playstore/${parsed.appId}`,
+          `https://icons.duckduckgo.com/ip3/play.google.com.ico`
+        ];
+      }
+
+      const d = parsed.domain;
+      return [
+        `https://unavatar.io/${d}?fallback=https://icons.duckduckgo.com/ip3/${d}.ico`,
+        `https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://${d}&size=128`,
+        `https://icons.duckduckgo.com/ip3/${d}.ico`,
+        `https://logo.clearbit.com/${d}`
+      ];
     }
 
     function renderLogoElement(name, url, isLeader = false) {
@@ -861,16 +1005,19 @@
         return `<div class="${avatarClass}">👑</div>`;
       }
       const initial = name.charAt(0).toUpperCase();
-      const faviconUrl = getFaviconUrl(url);
+      const parsed = parseInputTarget(url || name);
+      const sources = getLogoSources(parsed, name);
       const imgClass = isLeader ? 'leader-logo-img' : 'rung-logo-img';
       const avatarClass = isLeader ? 'leader-logo-avatar' : 'rung-logo-avatar';
 
-      if (faviconUrl) {
+      if (sources.length > 0) {
+        const primarySrc = sources[0];
+        const secondarySrc = sources[1] || '';
         return `
-          <img src="${escapeHtml(faviconUrl)}" 
+          <img src="${escapeHtml(primarySrc)}" 
                alt="${escapeHtml(name)}" 
                class="${imgClass}" 
-               onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='inline-flex';" 
+               onerror="if(this.dataset.tried!=='1' && '${secondarySrc}'){ this.dataset.tried='1'; this.src='${secondarySrc}'; } else { this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='inline-flex'; }" 
                loading="lazy">
           <div class="${avatarClass}" style="display: none;">${escapeHtml(initial)}</div>
         `;
@@ -901,6 +1048,84 @@
       setTimeout(() => { b.style.display = 'none'; }, 6000);
     }
 
+    // --- REAL-TIME LIVE TYPING & AUTOSUGGESTION ---
+    const urlInput = document.getElementById('urlInput');
+    const companyInput = document.getElementById('companyInput');
+    const urlBadge = document.getElementById('urlLogoBadge');
+    const dropdown = document.getElementById('suggestionsDropdown');
+
+    function updateLiveLogoPreview() {
+      const rawUrl = urlInput.value.trim();
+      const companyVal = companyInput.value.trim();
+      const target = rawUrl || companyVal;
+
+      if (!target) {
+        urlBadge.style.display = 'none';
+        dropdown.style.display = 'none';
+        return;
+      }
+
+      const parsed = parseInputTarget(target);
+      const sources = getLogoSources(parsed, companyVal);
+
+      if (sources.length > 0) {
+        urlBadge.style.display = 'flex';
+        urlBadge.innerHTML = `
+          <img src="${sources[0]}" 
+               onerror="if('${sources[1]}'){ this.src='${sources[1]}'; } else { this.style.display='none'; this.nextElementSibling.style.display='flex'; }">
+          <span style="display:none;">${escapeHtml((target||'B')[0].toUpperCase())}</span>
+        `;
+      } else {
+        urlBadge.style.display = 'none';
+      }
+
+      // Generate Auto-Suggestions if typing letters without dot
+      if (rawUrl && !rawUrl.startsWith('http') && rawUrl.length >= 2 && !rawUrl.includes(' ')) {
+        const base = rawUrl.replace(/^@/, '').toLowerCase();
+        dropdown.innerHTML = `
+          <div class="suggestion-item" onclick="applySuggestion('${base}.com')">
+            <img src="https://unavatar.io/${base}.com" class="suggestion-icon" onerror="this.src='https://icons.duckduckgo.com/ip3/${base}.com.ico'">
+            <span>🌐 <b>${base}.com</b> (Website)</span>
+          </div>
+          <div class="suggestion-item" onclick="applySuggestion('@${base}')">
+            <img src="https://unavatar.io/x/${base}" class="suggestion-icon" onerror="this.src='https://unavatar.io/twitter/${base}'">
+            <span>𝕏 <b>@${base}</b> (X / Twitter)</span>
+          </div>
+          <div class="suggestion-item" onclick="applySuggestion('${base}.in')">
+            <img src="https://unavatar.io/${base}.in" class="suggestion-icon" onerror="this.src='https://icons.duckduckgo.com/ip3/${base}.in.ico'">
+            <span>🇮🇳 <b>${base}.in</b> (India Domain)</span>
+          </div>
+        `;
+        dropdown.style.display = 'block';
+      } else {
+        dropdown.style.display = 'none';
+      }
+    }
+
+    function applySuggestion(val) {
+      urlInput.value = val;
+      dropdown.style.display = 'none';
+      updateLiveLogoPreview();
+    }
+
+    urlInput.addEventListener('input', () => {
+      clearTimeout(typingTimer);
+      typingTimer = setTimeout(updateLiveLogoPreview, 150);
+    });
+
+    companyInput.addEventListener('input', () => {
+      if (!urlInput.value) {
+        clearTimeout(typingTimer);
+        typingTimer = setTimeout(updateLiveLogoPreview, 250);
+      }
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!urlInput.contains(e.target) && !dropdown.contains(e.target)) {
+        dropdown.style.display = 'none';
+      }
+    });
+
     async function loadBoard() {
       try {
         const res = await fetch(`${API}/api/bids`);
@@ -920,9 +1145,9 @@
       const isInitial = !boardState.current_leader || boardState.current_leader === 'Nobody yet';
       leaderLink.textContent = isInitial ? 'Nobody yet' : boardState.current_leader;
       
-      const cleanUrl = normalizeUrl(boardState.leader_url);
-      if (cleanUrl && !isInitial) {
-        leaderLink.href = cleanUrl;
+      const parsed = parseInputTarget(boardState.leader_url || boardState.current_leader);
+      if (parsed.cleanUrl && !isInitial) {
+        leaderLink.href = parsed.cleanUrl;
         leaderLink.style.pointerEvents = 'auto';
       } else {
         leaderLink.removeAttribute('href');
@@ -950,7 +1175,7 @@
         bidsList.forEach((b, idx) => {
           const row = document.createElement('div');
           row.className = `rung ${idx === 0 ? 'rank-1' : ''} ${newest && idx === 0 ? 'new' : ''}`;
-          const bUrl = normalizeUrl(b.website_url);
+          const bParsed = parseInputTarget(b.website_url || b.company_name);
           
           row.innerHTML = `
             <div class="rank">${String(idx + 1).padStart(2, '0')}</div>
@@ -959,7 +1184,7 @@
             </div>
             <div class="rung-body">
               <div class="rung-top-line">
-                ${bUrl ? `<a href="${escapeHtml(bUrl)}" target="_blank" rel="noopener noreferrer" class="rung-name">${escapeHtml(b.company_name)} ↗</a>` : `<span class="rung-name">${escapeHtml(b.company_name)}</span>`}
+                ${bParsed.cleanUrl ? `<a href="${escapeHtml(bParsed.cleanUrl)}" target="_blank" rel="noopener noreferrer" class="rung-name">${escapeHtml(b.company_name)} ↗</a>` : `<span class="rung-name">${escapeHtml(b.company_name)}</span>`}
               </div>
               <div class="rung-time">${formatTime(b.created_at)}</div>
             </div>
@@ -973,12 +1198,12 @@
       const ticker = document.getElementById('ticker');
       if (bidsList.length > 0) {
         const items = bidsList.slice(0, 8).map(b => {
-          const u = normalizeUrl(b.website_url);
-          const fav = getFaviconUrl(b.website_url);
-          const iconHtml = fav 
-            ? `<img src="${escapeHtml(fav)}" class="ticker-logo" onerror="this.outerHTML='<span class=\\'ticker-avatar\\'>${escapeHtml((b.company_name||'?')[0])}</span>'">`
+          const p = parseInputTarget(b.website_url || b.company_name);
+          const srcs = getLogoSources(p, b.company_name);
+          const iconHtml = srcs.length > 0 
+            ? `<img src="${escapeHtml(srcs[0])}" class="ticker-logo" onerror="this.outerHTML='<span class=\\'ticker-avatar\\'>${escapeHtml((b.company_name||'?')[0])}</span>'">`
             : `<span class="ticker-avatar">${escapeHtml((b.company_name||'?')[0])}</span>`;
-          const nameHtml = u ? `<a href="${escapeHtml(u)}" target="_blank" rel="noopener noreferrer">${escapeHtml(b.company_name)}</a>` : escapeHtml(b.company_name);
+          const nameHtml = p.cleanUrl ? `<a href="${escapeHtml(p.cleanUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(b.company_name)}</a>` : escapeHtml(b.company_name);
           return `<span class="ticker-item">${iconHtml} ${nameHtml} <b>took the crown for ₹${b.price}</b></span>`;
         }).join('');
         ticker.innerHTML = items + items;
@@ -992,10 +1217,8 @@
       document.getElementById('checkoutCompanyName').textContent = companyName;
       document.getElementById('checkoutAmountText').textContent = `₹${price}`;
       
-      // Standard NPCI UPI Intent payload
       const upiPayload = `upi://pay?pa=${encodeURIComponent(UPI_VPA)}&pn=${encodeURIComponent(PAYEE_NAME)}&am=${price}&cu=INR&tn=${encodeURIComponent('Boli ' + companyName.slice(0, 16))}`;
       
-      // High-resolution Dynamic QR Code
       const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=350x350&data=${encodeURIComponent(upiPayload)}`;
       document.getElementById('upiQrImg').src = qrUrl;
       document.getElementById('qrLink').href = upiPayload;
@@ -1011,12 +1234,13 @@
     // Submit Boli Form
     document.getElementById('bidForm').addEventListener('submit', function(e) {
       e.preventDefault();
-      const companyInput = document.getElementById('companyInput');
-      const urlInput = document.getElementById('urlInput');
+      const compInput = document.getElementById('companyInput');
+      const uInput = document.getElementById('urlInput');
 
-      const companyName = companyInput.value.trim();
-      const rawUrl = urlInput.value.trim();
-      const websiteUrl = rawUrl ? normalizeUrl(rawUrl) : '';
+      const companyName = compInput.value.trim();
+      const rawUrl = uInput.value.trim();
+      const parsed = parseInputTarget(rawUrl);
+      const websiteUrl = parsed.cleanUrl || '';
 
       if (!companyName) { showError('Please enter your name or company name.'); return; }
 
@@ -1024,7 +1248,7 @@
       openCheckoutModal(companyName, websiteUrl, nextPrice);
     });
 
-    // 1-Click Crown Claiming (Instant & Smooth)
+    // 1-Click Crown Claiming
     async function confirmPaymentAndCrown() {
       const btn = document.getElementById('confirmPaidBtn');
       btn.disabled = true;
@@ -1047,7 +1271,6 @@
         console.warn('Local verification fallback');
       }
 
-      // Update board locally & celebrate
       boardState.current_price = pendingBid.price;
       boardState.current_leader = pendingBid.companyName;
       boardState.leader_url = pendingBid.websiteUrl;
@@ -1061,6 +1284,8 @@
 
       document.getElementById('companyInput').value = '';
       document.getElementById('urlInput').value = '';
+      document.getElementById('urlLogoBadge').style.display = 'none';
+      document.getElementById('suggestionsDropdown').style.display = 'none';
       closeCheckout();
       render(true);
 
