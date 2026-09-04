@@ -88,17 +88,17 @@ router.post('/order', async (req, res) => {
     return res.status(400).json({ error: 'Company name is required.' });
   }
 
-  // Determine next bid price
-  let nextPrice = (fallbackStore.board.current_price || 0) + 1;
+  // Determine next bid price (minimum starts at ₹50)
+  let current = fallbackStore.board.current_price || 0;
   if (pool) {
     try {
       const board = await pool.query('SELECT current_price FROM board WHERE id = 1');
-      if (board.rows[0]) nextPrice = Number(board.rows[0].current_price) + 1;
+      if (board.rows[0]) current = Number(board.rows[0].current_price);
     } catch (e) {
       console.warn('Could not read price from DB:', e.message);
     }
   }
-  nextPrice = Math.max(1, nextPrice);
+  let nextPrice = current < 50 ? 50 : current + 1;
 
   const apiKey    = process.env.DODO_PAYMENTS_API_KEY;
   const productId = process.env.DODO_PRODUCT_ID;
@@ -115,6 +115,11 @@ router.post('/order', async (req, res) => {
         quantity:   1,
         amount:     nextPrice * 100,  // Dodo uses smallest currency unit (paise)
       }],
+      // Without this, Dodo falls back to the product's stored currency (USD),
+      // which puts every bid behind the $0.50 USD card floor instead of the
+      // much lower ₹1 UPI floor. This forces INR + India billing explicitly.
+      billing_currency: 'INR',
+      billing_address: { country: 'IN' },
       payment_link: true,
       return_url:   `${siteUrl}/?payment_status=success&company=${encodeURIComponent(companyName.trim())}&url=${encodeURIComponent((websiteUrl || '').trim())}&price=${nextPrice}`,
       metadata: {
@@ -158,7 +163,7 @@ router.post('/webhook', async (req, res) => {
       const meta        = event.data?.metadata || {};
       const companyName = meta.company_name || 'Unknown';
       const websiteUrl  = meta.website_url  || '';
-      const price       = Number(meta.bid_price) || 1;
+      const price       = Number(meta.bid_price) || 50;
 
       // Update in-memory store
       fallbackStore.board = { current_price: price, current_leader: companyName, leader_url: websiteUrl };
@@ -207,7 +212,7 @@ router.post('/verify', async (req, res) => {
 
   if (!companyName) return res.status(400).json({ error: 'Missing companyName.' });
 
-  const finalPrice = Math.max((fallbackStore.board.current_price || 0) + 1, price || 1);
+  const finalPrice = Math.max(50, price || 50);
 
   fallbackStore.board = { current_price: finalPrice, current_leader: companyName.trim(), leader_url: (websiteUrl || '').trim() };
   fallbackStore.bids.unshift({
@@ -224,7 +229,7 @@ router.post('/verify', async (req, res) => {
     await client.query('BEGIN');
     const current     = await client.query('SELECT current_price FROM board WHERE id = 1 FOR UPDATE');
     const latestPrice = current.rows[0] ? Number(current.rows[0].current_price) : 0;
-    const dbPrice     = Math.max(latestPrice + 1, price || 1);
+    const dbPrice     = Math.max(latestPrice < 50 ? 50 : latestPrice + 1, price || 50);
 
     await client.query(
       `UPDATE board SET current_price=$1, current_leader=$2, leader_url=$3, updated_at=now() WHERE id=1`,

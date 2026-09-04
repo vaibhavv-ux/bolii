@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>BOLI — The Startup Bidding Board India</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Pay ₹1 more. Claim the #1 spot for your startup on India's most competitive founder billboard.">
+  <meta name="description" content="Pay ₹1 more. Claim the #1 spot for your startup on India's most competitive founder billboard. Bidding starts at ₹50.">
   
   <!-- Speed & CDN Preconnects for Indian Latency Optimization -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -779,10 +779,10 @@
   <!-- Live Top Ticker -->
   <div class="ticker-wrap">
     <div class="ticker" id="ticker">
-      <span class="ticker-item">⚡ <b>BOLI IS LIVE</b> · First founder to bid ₹1 claims the #1 Crown!</span>
+      <span class="ticker-item">⚡ <b>BOLI IS LIVE</b> · First founder to bid ₹50 claims the #1 Crown!</span>
       <span class="ticker-item">👑 Every boli raises the price by ₹1 · The board only climbs</span>
       <span class="ticker-item">🚀 Put your startup on India's most competitive founder billboard</span>
-      <span class="ticker-item">⚡ <b>BOLI IS LIVE</b> · First founder to bid ₹1 claims the #1 Crown!</span>
+      <span class="ticker-item">⚡ <b>BOLI IS LIVE</b> · First founder to bid ₹50 claims the #1 Crown!</span>
       <span class="ticker-item">👑 Every boli raises the price by ₹1 · The board only climbs</span>
       <span class="ticker-item">🚀 Put your startup on India's most competitive founder billboard</span>
     </div>
@@ -796,7 +796,7 @@
     </div>
     <h1 class="display">Pay ₹1 more.<br>Take the top spot.</h1>
     <p class="subtitle">
-      The ultimate marketing board for founders & startups. Every bid raises the price by ₹1, puts your company at the crown, and stays on the permanent ledger.
+      The ultimate marketing board for founders & startups. Starting at ₹50, every bid raises the price by ₹1, puts your company at the crown, and stays on the permanent ledger.
     </p>
     <p class="taunt">Every minute you wait, <b>another founder claims your spot.</b></p>
   </header>
@@ -836,11 +836,11 @@
         </div>
       </div>
       <button type="submit" class="bid-action-btn" id="bidBtn">
-        <span>⚡ Outbid for ₹<span id="nextPrice">1</span></span>
+        <span>⚡ Outbid for ₹<span id="nextPrice">50</span></span>
       </button>
     </form>
     <div class="form-hints">
-      Instant UPI QR Code · GPay / PhonePe / Paytm · Boli climbs by ₹1 each turn
+      Secure Checkout via Dodo Payments · UPI / Cards / NetBanking · Bidding starts at ₹50
     </div>
   </div>
 
@@ -1126,12 +1126,19 @@
       }
     });
 
-    // Load initial state from localStorage if available
+    // Load initial state (reset stale test bids under ₹50)
     try {
-      const savedBoard = localStorage.getItem('boli_board');
-      const savedBids = localStorage.getItem('boli_bids');
-      if (savedBoard) boardState = JSON.parse(savedBoard);
-      if (savedBids) bidsList = JSON.parse(savedBids);
+      const resetVersion = localStorage.getItem('boli_v2_reset');
+      if (!resetVersion) {
+        localStorage.removeItem('boli_board');
+        localStorage.removeItem('boli_bids');
+        localStorage.setItem('boli_v2_reset', 'true');
+      } else {
+        const savedBoard = localStorage.getItem('boli_board');
+        const savedBids = localStorage.getItem('boli_bids');
+        if (savedBoard) boardState = JSON.parse(savedBoard);
+        if (savedBids) bidsList = JSON.parse(savedBids);
+      }
       render();
     } catch(e) {}
 
@@ -1141,14 +1148,11 @@
         if (!res.ok) throw new Error('API offline');
         const data = await res.json();
         
-        // Only update if server has bids or higher price
-        if (data.bids && data.bids.length >= bidsList.length) {
-          boardState = data.board || boardState;
-          bidsList = data.bids || [];
-          localStorage.setItem('boli_board', JSON.stringify(boardState));
-          localStorage.setItem('boli_bids', JSON.stringify(bidsList));
-          render();
-        }
+        boardState = data.board || boardState;
+        bidsList = data.bids || [];
+        localStorage.setItem('boli_board', JSON.stringify(boardState));
+        localStorage.setItem('boli_bids', JSON.stringify(bidsList));
+        render();
       } catch (err) {
         console.warn('Backend sync:', err.message);
       }
@@ -1171,7 +1175,8 @@
 
       document.getElementById('leaderLogoWrap').innerHTML = renderLogoElement(boardState.current_leader, boardState.leader_url, true);
       document.getElementById('leaderPrice').textContent = Number(boardState.current_price || 0).toLocaleString('en-IN');
-      const nextBoliPrice = Number(boardState.current_price || 0) + 1;
+      const cur = Number(boardState.current_price || 0);
+      const nextBoliPrice = cur < 50 ? 50 : cur + 1;
       document.getElementById('nextPrice').textContent = Number(nextBoliPrice).toLocaleString('en-IN');
       document.getElementById('bidCount').textContent = `${bidsList.length} ${bidsList.length === 1 ? 'bid' : 'bids'} recorded`;
 
@@ -1183,7 +1188,7 @@
         ladder.innerHTML = `
           <div class="empty-state-box">
             <b>👑 The throne is waiting!</b>
-            Be the first founder to bid ₹1 and take the #1 spot on India's Boli Board.
+            Be the first founder to bid ₹50 and take the #1 spot on India's Boli Board.
           </div>
         `;
       } else {
