@@ -48,11 +48,21 @@ if (process.env.DATABASE_URL) {
   });
 }
 
-const router = express.Router();
-
-// ── 1. Health check ─────────────────────────────────────────
+// ── 1. Health check & Reset ─────────────────────────────────
 router.get('/health', (req, res) => {
   res.json({ status: 'ok', provider: 'dodo', time: new Date().toISOString() });
+});
+
+router.post('/reset', (req, res) => {
+  fallbackStore.board = { current_price: 0, current_leader: 'Nobody yet', leader_url: '' };
+  fallbackStore.bids = [];
+  res.json({ success: true, message: 'Board reset to starting state' });
+});
+
+router.get('/reset', (req, res) => {
+  fallbackStore.board = { current_price: 0, current_leader: 'Nobody yet', leader_url: '' };
+  fallbackStore.bids = [];
+  res.json({ success: true, message: 'Board reset to starting state' });
 });
 
 // ── 2. GET current board + recent bids ──────────────────────
