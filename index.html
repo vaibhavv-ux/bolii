@@ -1225,93 +1225,100 @@
       }
     }
 
-    // Open Pure QR Checkout Modal
-    function openCheckoutModal(companyName, websiteUrl, price) {
-      pendingBid = { companyName, websiteUrl, price };
-      
-      document.getElementById('checkoutCompanyName').textContent = companyName;
-      document.getElementById('checkoutAmountText').textContent = `₹${price}`;
-      
-      const upiPayload = `upi://pay?pa=${encodeURIComponent(UPI_VPA)}&pn=${encodeURIComponent(PAYEE_NAME)}&am=${price}&cu=INR&tn=${encodeURIComponent('Boli ' + companyName.slice(0, 16))}`;
-      
-      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=350x350&data=${encodeURIComponent(upiPayload)}`;
-      document.getElementById('upiQrImg').src = qrUrl;
-      document.getElementById('qrLink').href = upiPayload;
-      document.getElementById('directUpiAppBtn').href = upiPayload;
 
-      document.getElementById('checkoutModal').style.display = 'flex';
-    }
+    // ── DODO PAYMENTS — Checkout Session Flow ─────────────────────────────────
+    // On page load: detect if we're back from Dodo checkout (return URL)
+    (async function handleDodoReturn() {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('payment_status') !== 'success') return;
 
-    function closeCheckout() {
-      document.getElementById('checkoutModal').style.display = 'none';
-    }
+      const companyName = decodeURIComponent(params.get('company') || '');
+      const websiteUrl  = decodeURIComponent(params.get('url') || '');
+      const price       = Number(params.get('price')) || 1;
 
-    // Submit Boli Form
-    document.getElementById('bidForm').addEventListener('submit', function(e) {
-      e.preventDefault();
-      const compInput = document.getElementById('companyInput');
-      const uInput = document.getElementById('urlInput');
+      // Clean URL so refreshing doesn't re-trigger
+      const cleanUrl = window.location.pathname;
+      window.history.replaceState({}, document.title, cleanUrl);
 
-      const companyName = compInput.value.trim();
-      const rawUrl = uInput.value.trim();
-      const parsed = parseInputTarget(rawUrl);
-      const websiteUrl = parsed.cleanUrl || '';
+      if (!companyName) return;
 
-      if (!companyName) { showError('Please enter your name or company name.'); return; }
+      // Show a quick success flash
+      const flash = document.createElement('div');
+      flash.style.cssText = 'position:fixed;top:0;left:0;width:100%;padding:18px;background:#5FD18B;color:#0A110D;font-weight:700;font-size:15px;text-align:center;z-index:9999;';
+      flash.textContent = `🎉 Payment received! ${companyName} is now on the Boli board!`;
+      document.body.prepend(flash);
+      setTimeout(() => flash.remove(), 6000);
 
-      const nextPrice = Number(boardState.current_price || 0) + 1;
-      openCheckoutModal(companyName, websiteUrl, nextPrice);
-    });
-
-    // 1-Click Crown Claiming
-    async function confirmPaymentAndCrown() {
-      const btn = document.getElementById('confirmPaidBtn');
-      btn.disabled = true;
-      btn.textContent = 'Claiming Crown... ⚡';
-
+      // Record bid via /api/verify (webhook will also fire server-side)
       try {
         await fetch(`${API}/api/verify`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            razorpay_order_id: 'upi_direct_' + Date.now(),
-            razorpay_payment_id: 'pay_direct_' + Date.now(),
-            razorpay_signature: 'direct_upi_verified',
-            companyName: pendingBid.companyName,
-            websiteUrl: pendingBid.websiteUrl,
-            price: pendingBid.price
-          })
+          body: JSON.stringify({ companyName, websiteUrl, price }),
         });
       } catch (err) {
-        console.warn('Local verification fallback');
+        console.warn('Verify call failed:', err.message);
       }
 
-      boardState.current_price = pendingBid.price;
-      boardState.current_leader = pendingBid.companyName;
-      boardState.leader_url = pendingBid.websiteUrl;
-      
-      bidsList.unshift({
-        company_name: pendingBid.companyName,
-        website_url: pendingBid.websiteUrl,
-        price: pendingBid.price,
-        created_at: new Date().toISOString()
-      });
-
+      // Update local state optimistically
+      boardState.current_price  = price;
+      boardState.current_leader = companyName;
+      boardState.leader_url     = websiteUrl;
+      bidsList.unshift({ company_name: companyName, website_url: websiteUrl, price, created_at: new Date().toISOString() });
       try {
         localStorage.setItem('boli_board', JSON.stringify(boardState));
-        localStorage.setItem('boli_bids', JSON.stringify(bidsList));
+        localStorage.setItem('boli_bids',  JSON.stringify(bidsList));
       } catch(e) {}
-
-      document.getElementById('companyInput').value = '';
-      document.getElementById('urlInput').value = '';
-      document.getElementById('urlLogoBadge').style.display = 'none';
-      document.getElementById('suggestionsDropdown').style.display = 'none';
-      closeCheckout();
       render(true);
 
-      btn.disabled = false;
-      btn.textContent = "I've Paid — Claim #1 Crown 👑";
-    }
+      // Refresh from server after 2 s to get authoritative state
+      setTimeout(loadBoard, 2000);
+    })();
+
+    // Submit Boli Form — now redirects to Dodo hosted checkout
+    document.getElementById('bidForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      const compInput   = document.getElementById('companyInput');
+      const uInput      = document.getElementById('urlInput');
+      const companyName = compInput.value.trim();
+      const rawUrl      = uInput.value.trim();
+      const parsed      = parseInputTarget(rawUrl);
+      const websiteUrl  = parsed.cleanUrl || '';
+
+      if (!companyName) { showError('Please enter your name or company name.'); return; }
+
+      // Show loading state on button
+      const btn = document.querySelector('.bid-submit-btn');
+      const originalText = btn ? btn.textContent : '';
+      if (btn) { btn.disabled = true; btn.textContent = 'Opening checkout… ⚡'; }
+
+      try {
+        const res = await fetch(`${API}/api/order`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ companyName, websiteUrl }),
+        });
+
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.error || 'Failed to create checkout session');
+        }
+
+        const data = await res.json();
+
+        if (data.checkout_url) {
+          // Redirect to Dodo hosted checkout page
+          window.location.href = data.checkout_url;
+        } else {
+          throw new Error('No checkout URL returned from server');
+        }
+      } catch (err) {
+        console.error('Checkout error:', err);
+        showError(`Payment error: ${err.message}. Please try again.`);
+        if (btn) { btn.disabled = false; btn.textContent = originalText; }
+      }
+    });
 
     // Initial Load and low-latency poll every 4 seconds
     loadBoard();
@@ -1319,3 +1326,4 @@
   </script>
 </body>
 </html>
+
