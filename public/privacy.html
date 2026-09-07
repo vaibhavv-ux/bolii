@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <title>Privacy Policy — BOLI</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="alternate icon" type="image/png" href="/boli-logo.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -36,6 +38,19 @@
       padding: 40px 32px;
       box-shadow: 0 16px 40px rgba(0,0,0,0.5);
     }
+    .top-nav-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .nav-logo {
+      height: 28px;
+      width: auto;
+      display: block;
+    }
     .back-btn {
       display: inline-flex;
       align-items: center;
@@ -45,7 +60,7 @@
       font-family: 'JetBrains Mono', monospace;
       font-size: 13px;
       font-weight: 600;
-      margin-bottom: 24px;
+      margin-bottom: 0;
     }
     .back-btn:hover { text-decoration: underline; }
     h1 {
@@ -86,7 +101,10 @@
 </head>
 <body>
   <div class="container">
-    <a href="/" class="back-btn">← Back to BOLI Board</a>
+    <div class="top-nav-bar">
+      <a href="/" class="back-btn">← Back to BOLI Board</a>
+      <a href="/" aria-label="Boli"><img src="/boli-logo.svg" alt="Boli Logo" class="nav-logo"></a>
+    </div>
     <h1>Privacy Policy</h1>
     <span class="last-updated">Last Updated: August 2026</span>
 

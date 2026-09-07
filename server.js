@@ -13,6 +13,8 @@ require('dotenv').config();
 
 const app = express();
 app.use(cors());
+app.use(express.static(path.join(__dirname, 'public')));
+
 
 // Raw body middleware for webhook verification
 app.use((req, res, next) => {

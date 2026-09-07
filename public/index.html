@@ -13,7 +13,21 @@
   <link rel="preconnect" href="https://api.qrserver.com">
   <link rel="preconnect" href="https://icons.duckduckgo.com">
   <link rel="preconnect" href="https://t2.gstatic.com">
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500;600;700&family=Manrope:wght@400;500;600;700&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Favicon & App Icons -->
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="alternate icon" type="image/png" href="/boli-logo.png">
+  <link rel="apple-touch-icon" href="/favicon.svg">
+
+  <!-- Open Graph / Meta -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="BOLI — The Startup Bidding Board India">
+  <meta property="og:description" content="Pay ₹1 more. Claim the #1 spot for your startup on India's most competitive founder billboard.">
+  <meta property="og:image" content="/boli-logo.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="/boli-logo.png">
+
 
   <style>
     :root {
@@ -106,8 +120,30 @@
     header {
       max-width: 780px;
       margin: 0 auto;
-      padding: 48px 20px 24px;
+      padding: 40px 20px 24px;
       text-align: center;
+    }
+    .brand-logo-wrap {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+    .brand-logo-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), filter 0.22s ease;
+    }
+    .brand-logo-link:hover {
+      transform: translateY(-2px) scale(1.02);
+      filter: drop-shadow(0 6px 20px rgba(232, 163, 61, 0.2));
+    }
+    .brand-logo-svg {
+      width: clamp(240px, 52vw, 360px);
+      height: auto;
+      display: block;
     }
     .badge {
       display: inline-flex;
@@ -790,6 +826,20 @@
 
   <!-- Header -->
   <header>
+    <div class="brand-logo-wrap">
+      <a href="/" class="brand-logo-link" aria-label="BOLI — Marketing Leaderboard">
+        <svg class="brand-logo-svg" viewBox="0 0 640 200" width="640" height="200" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M50,132 L85,110 L120,85 L155,58" stroke="var(--rail, #2B3D32)" stroke-width="2.5" stroke-linecap="round"/>
+          <circle cx="155" cy="58" r="22" stroke="var(--amber, #E8A33D)" stroke-width="1.8" opacity="0.45"/>
+          <circle cx="50" cy="132" r="7.5" fill="#526359"/>
+          <circle cx="85" cy="110" r="8.5" fill="#7E9387"/>
+          <circle cx="120" cy="85" r="10.5" fill="#AEC4B7"/>
+          <circle cx="155" cy="58" r="13" fill="var(--amber, #E8A33D)"/>
+          <text x="196" y="118" font-family="'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-weight="700" font-size="64" letter-spacing="-1" fill="var(--ink, #F4F1E8)">boli</text>
+          <text x="198" y="150" font-family="'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-weight="600" font-size="13" letter-spacing="3" fill="var(--ink-dim, #9FAE9F)">MARKETING LEADERBOARD</text>
+        </svg>
+      </a>
+    </div>
     <div class="badge">
       <div class="live-dot"></div>
       India's Startup Boli Board
