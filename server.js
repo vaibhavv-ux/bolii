@@ -1,11 +1,13 @@
 // ============================================================
 // BOLI BACKEND SERVER (Node.js + Express + Dodo Payments + Postgres)
+// Persistent fallback via JSONBin.io when no DATABASE_URL is set
 // Compatible with Vercel Serverless & standalone Node deployments
 // ============================================================
 
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const https = require('https');
 const { Pool } = require('pg');
 const DodoPayments = require('dodopayments').default;
 const { Webhook } = require('standardwebhooks');
@@ -14,7 +16,6 @@ require('dotenv').config();
 const app = express();
 app.use(cors());
 app.use(express.static(path.join(__dirname, 'public')));
-
 
 // Raw body middleware for webhook verification
 app.use((req, res, next) => {
@@ -28,21 +29,11 @@ app.use((req, res, next) => {
   }
 });
 
-// ── Dodo Payments client ────────────────────────────────────
+// ── Dodo Payments client ─────────────────────────────────────
 const dodo = new DodoPayments({
   bearerToken: process.env.DODO_PAYMENTS_API_KEY,
   environment: process.env.DODO_ENV || 'live_mode',
 });
-
-// ── In-memory fallback store (Fresh ₹50 start) ───────────────
-const fallbackStore = {
-  board: {
-    current_price: 0,
-    current_leader: 'Nobody yet',
-    leader_url: '',
-  },
-  bids: []
-};
 
 // ── Database connection pool (Optional) ─────────────────────
 let pool = null;
@@ -57,62 +48,148 @@ if (process.env.DATABASE_URL) {
   });
 }
 
+// ── JSONBin.io Persistent Fallback ──────────────────────────
+// Used when DATABASE_URL is not set. Free at jsonbin.io.
+// Set JSONBIN_KEY and JSONBIN_BIN_ID in your Vercel env vars.
+const JSONBIN_KEY   = process.env.JSONBIN_KEY   || '';
+const JSONBIN_BIN_ID = process.env.JSONBIN_BIN_ID || '';
+
+const EMPTY_STORE = {
+  board: { current_price: 0, current_leader: 'Nobody yet', leader_url: '' },
+  bids: []
+};
+
+function jsonbinRequest(method, path, body) {
+  return new Promise((resolve, reject) => {
+    const bodyStr = body ? JSON.stringify(body) : null;
+    const options = {
+      hostname: 'api.jsonbin.io',
+      port: 443,
+      path,
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Master-Key': JSONBIN_KEY,
+        'X-Bin-Versioning': 'false',
+        ...(bodyStr ? { 'Content-Length': Buffer.byteLength(bodyStr) } : {}),
+      },
+    };
+    const req = https.request(options, (res) => {
+      let data = '';
+      res.on('data', chunk => { data += chunk; });
+      res.on('end', () => {
+        try { resolve(JSON.parse(data)); }
+        catch(e) { reject(new Error('JSONBin parse error: ' + data)); }
+      });
+    });
+    req.on('error', reject);
+    if (bodyStr) req.write(bodyStr);
+    req.end();
+  });
+}
+
+async function jsonbinRead() {
+  if (!JSONBIN_KEY || !JSONBIN_BIN_ID) return EMPTY_STORE;
+  try {
+    const res = await jsonbinRequest('GET', `/v3/b/${JSONBIN_BIN_ID}/latest`);
+    return res.record || EMPTY_STORE;
+  } catch (e) {
+    console.warn('JSONBin read error:', e.message);
+    return EMPTY_STORE;
+  }
+}
+
+async function jsonbinWrite(store) {
+  if (!JSONBIN_KEY || !JSONBIN_BIN_ID) return;
+  try {
+    await jsonbinRequest('PUT', `/v3/b/${JSONBIN_BIN_ID}`, store);
+  } catch (e) {
+    console.warn('JSONBin write error:', e.message);
+  }
+}
+
 // Serve frontend static assets
 app.use(express.static(path.join(__dirname, 'public'), {
   maxAge: '1d',
   etag: true,
 }));
 
-// ── 1. Health check & Reset ─────────────────────────────────
+// ── 0. Auto-create JSONBin bin on first deploy ───────────────
+app.get('/api/init-bin', async (req, res) => {
+  if (pool) return res.json({ skip: true, reason: 'Using Postgres' });
+  if (!JSONBIN_KEY) return res.status(400).json({ error: 'Set JSONBIN_KEY env var first' });
+  if (JSONBIN_BIN_ID) return res.json({ skip: true, reason: 'Bin already set', binId: JSONBIN_BIN_ID });
+
+  try {
+    const result = await jsonbinRequest('POST', '/v3/b', {
+      ...EMPTY_STORE,
+      _created: new Date().toISOString()
+    });
+    const binId = result.metadata?.id;
+    res.json({
+      ok: true,
+      binId,
+      message: `✅ Copy this bin ID and set it as JSONBIN_BIN_ID in your Vercel env vars: ${binId}`
+    });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ── 1. Health check & Reset ──────────────────────────────────
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', provider: 'dodo', db: pool ? 'postgres' : 'in-memory', time: new Date().toISOString() });
+  res.json({
+    status: 'ok',
+    provider: 'dodo',
+    db: pool ? 'postgres' : (JSONBIN_KEY && JSONBIN_BIN_ID ? 'jsonbin' : 'in-memory'),
+    time: new Date().toISOString()
+  });
 });
 
 app.get('/api/reset', (req, res) => {
-  fallbackStore.board = { current_price: 0, current_leader: 'Nobody yet', leader_url: '' };
-  fallbackStore.bids = [];
+  res.json({ success: false, message: 'Use POST /api/reset' });
+});
+
+app.post('/api/reset', async (req, res) => {
+  const resetStore = {
+    board: { current_price: 0, current_leader: 'Nobody yet', leader_url: '' },
+    bids: []
+  };
+  await jsonbinWrite(resetStore);
   res.json({ success: true, message: 'Board reset to starting state' });
 });
 
-app.post('/api/reset', (req, res) => {
-  fallbackStore.board = { current_price: 0, current_leader: 'Nobody yet', leader_url: '' };
-  fallbackStore.bids = [];
-  res.json({ success: true, message: 'Board reset to starting state' });
-});
-
-// ── 2. GET current board state + recent bids ────────────────
+// ── 2. GET current board state + recent bids ─────────────────
 app.get('/api/bids', async (req, res) => {
   res.set('Cache-Control', 'no-store');
 
-  if (!pool) {
-    return res.json({
-      board: fallbackStore.board,
-      bids: fallbackStore.bids,
-    });
+  // ── Postgres path
+  if (pool) {
+    try {
+      const board = await pool.query(
+        'SELECT current_price, current_leader, leader_url FROM board WHERE id = 1 LIMIT 1'
+      );
+      const bids = await pool.query(
+        'SELECT company_name, website_url, price, created_at FROM bids ORDER BY created_at DESC LIMIT 50'
+      );
+      return res.json({
+        board: board.rows[0] || EMPTY_STORE.board,
+        bids: bids.rows || [],
+      });
+    } catch (err) {
+      console.warn('DB read error, falling through to JSONBin:', err.message);
+    }
   }
 
-  try {
-    const board = await pool.query(
-      'SELECT current_price, current_leader, leader_url FROM board WHERE id = 1 LIMIT 1'
-    );
-    const bids = await pool.query(
-      'SELECT company_name, website_url, price, created_at FROM bids ORDER BY created_at DESC LIMIT 50'
-    );
-
-    res.json({
-      board: board.rows[0] || fallbackStore.board,
-      bids: bids.rows || [],
-    });
-  } catch (err) {
-    console.warn('DB read fallback:', err.message);
-    res.json({
-      board: fallbackStore.board,
-      bids: fallbackStore.bids,
-    });
-  }
+  // ── JSONBin path (persistent fallback)
+  const store = await jsonbinRead();
+  return res.json({
+    board: store.board || EMPTY_STORE.board,
+    bids:  store.bids  || [],
+  });
 });
 
-// ── 3. POST /api/order — Create Dodo Checkout Session ───────
+// ── 3. POST /api/order — Create Dodo Checkout Session ────────
 app.post('/api/order', async (req, res) => {
   const { companyName, websiteUrl } = req.body;
   if (!companyName || !companyName.trim()) {
@@ -120,7 +197,8 @@ app.post('/api/order', async (req, res) => {
   }
 
   // Determine next bid price (Starts at ₹50)
-  let current = fallbackStore.board.current_price || 0;
+  let current = 0;
+
   if (pool) {
     try {
       const board = await pool.query('SELECT current_price FROM board WHERE id = 1');
@@ -128,16 +206,19 @@ app.post('/api/order', async (req, res) => {
     } catch (e) {
       console.warn('Could not read price from DB:', e.message);
     }
+  } else {
+    const store = await jsonbinRead();
+    current = Number((store.board || {}).current_price || 0);
   }
 
-  let nextPrice = current < 50 ? 50 : current + 1;
+  const nextPrice = current < 50 ? 50 : current + 1;
 
-  const apiKey = process.env.DODO_PAYMENTS_API_KEY;
+  const apiKey    = process.env.DODO_PAYMENTS_API_KEY;
   const productId = process.env.DODO_PRODUCT_ID;
-  const siteUrl = process.env.SITE_URL || 'https://bolii.vercel.app';
+  const siteUrl   = process.env.SITE_URL || 'https://bolii.vercel.app';
 
   if (!apiKey || !productId) {
-    return res.status(500).json({ error: 'Dodo Payments not configured. Set DODO_PAYMENTS_API_KEY and DODO_PRODUCT_ID in environment variables.' });
+    return res.status(500).json({ error: 'Dodo Payments not configured. Set DODO_PAYMENTS_API_KEY and DODO_PRODUCT_ID.' });
   }
 
   try {
@@ -145,7 +226,7 @@ app.post('/api/order', async (req, res) => {
       product_cart: [{
         product_id: productId,
         quantity: 1,
-        amount: nextPrice * 100, // Amount in paise
+        amount: nextPrice * 100, // paise
       }],
       billing_currency: 'INR',
       billing_address: { country: 'IN' },
@@ -153,22 +234,19 @@ app.post('/api/order', async (req, res) => {
       return_url: `${siteUrl}/?payment_status=success&company=${encodeURIComponent(companyName.trim())}&url=${encodeURIComponent((websiteUrl || '').trim())}&price=${nextPrice}`,
       metadata: {
         company_name: companyName.trim().slice(0, 64),
-        website_url: (websiteUrl || '').trim().slice(0, 255),
-        bid_price: String(nextPrice),
+        website_url:  (websiteUrl || '').trim().slice(0, 255),
+        bid_price:    String(nextPrice),
       },
     });
 
-    res.json({
-      checkout_url: session.checkout_url,
-      nextPrice,
-    });
+    res.json({ checkout_url: session.checkout_url, nextPrice });
   } catch (err) {
     console.error('Dodo checkout session error:', err);
     res.status(500).json({ error: 'Could not create Dodo checkout session. Verify API keys.' });
   }
 });
 
-// ── 4. POST /api/webhook — Dodo Payment Webhook ─────────────
+// ── 4. POST /api/webhook — Dodo Payment Webhook ──────────────
 app.post('/api/webhook', async (req, res) => {
   const webhookSecret = process.env.DODO_WEBHOOK_SECRET;
 
@@ -180,23 +258,22 @@ app.post('/api/webhook', async (req, res) => {
   try {
     const wh = new Webhook(webhookSecret);
     const webhookHeaders = {
-      'webhook-id': req.headers['webhook-id'] || '',
+      'webhook-id':        req.headers['webhook-id']        || '',
       'webhook-signature': req.headers['webhook-signature'] || '',
       'webhook-timestamp': req.headers['webhook-timestamp'] || '',
     };
 
     const payload = wh.verify(req.rawBody, webhookHeaders);
-    const event = typeof payload === 'string' ? JSON.parse(payload) : payload;
+    const event   = typeof payload === 'string' ? JSON.parse(payload) : payload;
 
     if (event.type === 'payment.succeeded') {
-      const meta = event.data?.metadata || {};
+      const meta        = event.data?.metadata || {};
       const companyName = meta.company_name || 'Unknown';
-      const websiteUrl = meta.website_url || '';
-      const price = Number(meta.bid_price) || 50;
+      const websiteUrl  = meta.website_url  || '';
+      const price       = Number(meta.bid_price) || 50;
+      const newBid      = { company_name: companyName, website_url: websiteUrl, price, created_at: new Date().toISOString() };
 
-      fallbackStore.board = { current_price: price, current_leader: companyName, leader_url: websiteUrl };
-      fallbackStore.bids.unshift({ company_name: companyName, website_url: websiteUrl, price, created_at: new Date().toISOString() });
-
+      // ── Postgres path
       if (pool) {
         const client = await pool.connect();
         try {
@@ -204,7 +281,6 @@ app.post('/api/webhook', async (req, res) => {
           const current = await client.query('SELECT current_price FROM board WHERE id = 1 FOR UPDATE');
           const latestPrice = current.rows[0] ? Number(current.rows[0].current_price) : 0;
           const dbPrice = Math.max(latestPrice < 50 ? 50 : latestPrice + 1, price);
-
           await client.query(
             `UPDATE board SET current_price=$1, current_leader=$2, leader_url=$3, updated_at=now() WHERE id=1`,
             [dbPrice, companyName, websiteUrl]
@@ -221,6 +297,14 @@ app.post('/api/webhook', async (req, res) => {
         } finally {
           client.release();
         }
+      } else {
+        // ── JSONBin path
+        const store = await jsonbinRead();
+        const latestPrice = Number((store.board || {}).current_price || 0);
+        const dbPrice = Math.max(latestPrice < 50 ? 50 : latestPrice + 1, price);
+        store.board = { current_price: dbPrice, current_leader: companyName, leader_url: websiteUrl };
+        store.bids  = [{ ...newBid, price: dbPrice }, ...(store.bids || [])].slice(0, 100);
+        await jsonbinWrite(store);
       }
     }
 
@@ -231,47 +315,64 @@ app.post('/api/webhook', async (req, res) => {
   }
 });
 
-// ── 5. POST /api/verify — Return URL Fallback ────────────────
+// ── 5. POST /api/verify — Return URL Fallback ─────────────────
+// Called when the buyer lands back on the site after Dodo checkout
 app.post('/api/verify', async (req, res) => {
   const { companyName, websiteUrl, price } = req.body;
   if (!companyName) return res.status(400).json({ error: 'Missing companyName.' });
 
-  const finalPrice = Math.max(50, price || 50);
-
-  fallbackStore.board = { current_price: finalPrice, current_leader: companyName.trim(), leader_url: (websiteUrl || '').trim() };
-  fallbackStore.bids.unshift({
+  const finalPrice = Math.max(50, Number(price) || 50);
+  const newBid = {
     company_name: companyName.trim(),
-    website_url: (websiteUrl || '').trim(),
-    price: finalPrice,
-    created_at: new Date().toISOString(),
-  });
+    website_url:  (websiteUrl || '').trim(),
+    price:        finalPrice,
+    created_at:   new Date().toISOString(),
+  };
 
-  if (!pool) return res.json({ success: true, price: finalPrice });
+  // ── Postgres path
+  if (pool) {
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      const current = await client.query('SELECT current_price FROM board WHERE id = 1 FOR UPDATE');
+      const latestPrice = current.rows[0] ? Number(current.rows[0].current_price) : 0;
+      const dbPrice = Math.max(latestPrice < 50 ? 50 : latestPrice + 1, finalPrice);
+      await client.query(
+        `UPDATE board SET current_price=$1, current_leader=$2, leader_url=$3, updated_at=now() WHERE id=1`,
+        [dbPrice, companyName.trim(), (websiteUrl || '').trim()]
+      );
+      await client.query(
+        `INSERT INTO bids (company_name, website_url, price, razorpay_order_id, razorpay_payment_id)
+         VALUES ($1, $2, $3, $4, $5)`,
+        [companyName.trim(), (websiteUrl || '').trim(), dbPrice, 'dodo_return', 'dodo_return']
+      );
+      await client.query('COMMIT');
+      return res.json({ success: true, price: dbPrice });
+    } catch (err) {
+      await client.query('ROLLBACK');
+      console.error('DB write error in verify:', err);
+      return res.status(500).json({ error: 'Failed to record bid.' });
+    } finally {
+      client.release();
+    }
+  }
 
-  const client = await pool.connect();
+  // ── JSONBin path
   try {
-    await client.query('BEGIN');
-    const current = await client.query('SELECT current_price FROM board WHERE id = 1 FOR UPDATE');
-    const latestPrice = current.rows[0] ? Number(current.rows[0].current_price) : 0;
-    const dbPrice = Math.max(latestPrice < 50 ? 50 : latestPrice + 1, price || 50);
-
-    await client.query(
-      `UPDATE board SET current_price=$1, current_leader=$2, leader_url=$3, updated_at=now() WHERE id=1`,
-      [dbPrice, companyName.trim(), (websiteUrl || '').trim()]
-    );
-    await client.query(
-      `INSERT INTO bids (company_name, website_url, price, razorpay_order_id, razorpay_payment_id)
-       VALUES ($1, $2, $3, $4, $5)`,
-      [companyName.trim(), (websiteUrl || '').trim(), dbPrice, 'dodo_return', 'dodo_return']
-    );
-    await client.query('COMMIT');
-    res.json({ success: true, price: dbPrice });
+    const store = await jsonbinRead();
+    const latestPrice = Number((store.board || {}).current_price || 0);
+    const dbPrice = Math.max(latestPrice < 50 ? 50 : latestPrice + 1, finalPrice);
+    store.board = {
+      current_price:   dbPrice,
+      current_leader:  companyName.trim(),
+      leader_url:      (websiteUrl || '').trim(),
+    };
+    store.bids = [{ ...newBid, price: dbPrice }, ...(store.bids || [])].slice(0, 100);
+    await jsonbinWrite(store);
+    return res.json({ success: true, price: dbPrice });
   } catch (err) {
-    await client.query('ROLLBACK');
-    console.error('DB write error in verify:', err);
-    res.status(500).json({ error: 'Failed to record bid.' });
-  } finally {
-    client.release();
+    console.error('JSONBin write error in verify:', err);
+    return res.status(500).json({ error: 'Failed to record bid.' });
   }
 });
 

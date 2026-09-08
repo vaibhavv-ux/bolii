@@ -1259,14 +1259,35 @@
         const res = await fetch(`${API}/api/bids`);
         if (!res.ok) throw new Error('API offline');
         const data = await res.json();
-        
-        boardState = data.board || boardState;
-        bidsList = data.bids || [];
-        localStorage.setItem('boli_board', JSON.stringify(boardState));
-        localStorage.setItem('boli_bids', JSON.stringify(bidsList));
+
+        const serverBoard = data.board || {};
+        const serverBids  = data.bids  || [];
+
+        // Only adopt server state if it's more up-to-date than what we have locally.
+        // This prevents a cold serverless instance (with fresh/empty state) from
+        // wiping out the real data that was already shown to the user.
+        const serverPrice = Number(serverBoard.current_price || 0);
+        const localPrice  = Number(boardState.current_price  || 0);
+
+        const serverHasRealData = serverBoard.current_leader && serverBoard.current_leader !== 'Nobody yet';
+        const serverIsBetter    = serverPrice >= localPrice;
+
+        if (serverHasRealData || serverIsBetter || bidsList.length === 0) {
+          boardState = serverBoard;
+          bidsList   = serverBids.length > 0 ? serverBids : bidsList;
+        }
+
+        // Always persist whatever is the best known state locally
+        try {
+          localStorage.setItem('boli_board', JSON.stringify(boardState));
+          localStorage.setItem('boli_bids',  JSON.stringify(bidsList));
+        } catch(e) {}
+
         render();
       } catch (err) {
         console.warn('Backend sync:', err.message);
+        // Still render from local cache on failure
+        render();
       }
     }
 
